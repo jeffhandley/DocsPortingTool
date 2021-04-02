@@ -1,11 +1,11 @@
 ﻿namespace LeadingTriviaTestData.WhitespaceOnly.Expected
 {
-    /// <summary></summary>
-    /// <remarks></remarks>
+    /// <summary>WhitespaceOnly</summary>
+    /// <remarks>WhitespaceOnly</remarks>
     public class MyType
     {
-        /// <summary></summary>
-        /// <remarks></remarks>
+        /// <summary>WhitespaceOnly</summary>
+        /// <remarks>WhitespaceOnly</remarks>
         public enum MyEnum
         {
             FirstValue = 1,
@@ -13,12 +13,12 @@
             ThirdValue,
         }
 
-        /// <summary></summary>
-        /// <remarks></remarks>
+        /// <summary>WhitespaceOnly</summary>
+        /// <remarks>WhitespaceOnly</remarks>
         public int MyField;
 
-        /// <summary></summary>
-        /// <remarks></remarks>
+        /// <summary>WhitespaceOnly</summary>
+        /// <remarks>WhitespaceOnly</remarks>
         public string MyProperty
         {
             get
@@ -31,8 +31,8 @@
             }
         }
 
-        /// <summary></summary>
-        /// <remarks></remarks>
+        /// <summary>WhitespaceOnly</summary>
+        /// <remarks>WhitespaceOnly</remarks>
         public bool MyMethod()
         {
             return true;
