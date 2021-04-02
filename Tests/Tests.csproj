@@ -12,6 +12,7 @@
     <Compile Remove="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
+    <!--Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\*.cs" /-->
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +41,7 @@
     <None Include="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\MyAssembly.csproj" />
+    <!--None Include="PortToTripleSlash\TestData\LeadingTrivia\*.cs" /-->
   </ItemGroup>
 
 </Project>
