@@ -24,6 +24,7 @@
         #endregion
 
 #pragma warning disable
+        // This comment should remain below the XML comments
         public int MyField;
 #pragma warning restore
 

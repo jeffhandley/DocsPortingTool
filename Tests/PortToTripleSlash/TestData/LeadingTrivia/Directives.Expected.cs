@@ -1,19 +1,19 @@
 ﻿namespace LeadingTriviaTestData.Directives.Expected
 {
-    /// <summary>Directives</summary>
-    /// <remarks>Directives</remarks>
 #if false
     internal
 #else
+    /// <summary>Directives</summary>
+    /// <remarks>Directives</remarks>
     public
 #endif
     class MyType
     {
         #region MyEnum
 
+#if true
         /// <summary>Directives</summary>
         /// <remarks>Directives</remarks>
-#if true
         public
 #else
         internal
@@ -30,6 +30,7 @@
 #pragma warning disable
         /// <summary>Directives</summary>
         /// <remarks>Directives</remarks>
+        // This comment should remain below the XML comments
         public int MyField;
 #pragma warning restore
 
@@ -49,9 +50,9 @@
         }
 #nullable restore
 
+#if true
         /// <summary>Directives</summary>
         /// <remarks>Directives</remarks>
-#if true
         public bool MyMethod()
         {
             return true;

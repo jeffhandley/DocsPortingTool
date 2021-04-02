@@ -12,33 +12,25 @@ namespace Libraries.RoslynTripleSlash
     {
         private static int[] UpperBoundaries = new[]
         {
-            (int)SyntaxKind.RegionDirectiveTrivia
+            (int)SyntaxKind.RegionDirectiveTrivia,
+            (int)SyntaxKind.PragmaWarningDirectiveTrivia,
+            (int)SyntaxKind.IfDirectiveTrivia,
+            (int)SyntaxKind.EndIfDirectiveTrivia,
         };
 
         public static int[] LowerBoundaries = new[]
         {
-            (int)SyntaxKind.IfDirectiveTrivia
+            (int)SyntaxKind.SingleLineCommentTrivia
         };
 
         public static SyntaxNode ApplyXmlComments(SyntaxNode node, IEnumerable<SyntaxTrivia> xmlComments)
         {
+            if (!node.HasLeadingTrivia)
+            {
+                return node.WithLeadingTrivia(GetXmlCommentLines(xmlComments));
+            }
+
             SyntaxTriviaList leading = node.GetLeadingTrivia();
-            SyntaxTriviaList xmlTrivia = new();
-            SyntaxTrivia indentation = SyntaxFactory.Whitespace("");
-
-            if (leading.Any() && leading.Last().IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                // If the last trivia before the declaration is whitespace
-                // then this represents indentation for the declaration
-                // and we'll match that indentation for the XML comments
-                indentation = leading.Last();
-            }
-
-            // Create the indented XML comment lines
-            foreach (var xmlComment in xmlComments)
-            {
-                xmlTrivia = xmlTrivia.AddRange(new[] { indentation, xmlComment, SyntaxFactory.CarriageReturnLineFeed });
-            }
 
             // We will determine the position at which to insert the XML
             // comments. We want to find the spot closest to the declaration
@@ -57,9 +49,50 @@ namespace Libraries.RoslynTripleSlash
                 position++;
             }
 
-            // Now that we know the position of where to insert our XML comments
-            // We replace that trivia with the XML trivia plus that trivia (to retain it)
-            return node.ReplaceTrivia(leading[position], xmlTrivia.Add(leading[position]));
+            // Now we know the trivia we need to remain above. Walk backward through any whitespace;
+            while (position > 0 && leading[position - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                position--;
+            }
+
+            // Now we will construct the XML trivia. If the position we'll use is whitespace,
+            // then we use that to indent the XML comments too.
+            SyntaxTriviaList xmlTrivia;
+
+            if (leading[position].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                xmlTrivia = GetXmlCommentLines(xmlComments, leading[position]);
+            }
+            else
+            {
+                xmlTrivia = GetXmlCommentLines(xmlComments);
+            }
+
+            return node.InsertTriviaBefore(leading[position], xmlTrivia);
+        }
+
+        public static SyntaxTriviaList GetXmlCommentLines(IEnumerable<SyntaxTrivia> xmlComments)
+        {
+            SyntaxTriviaList xmlTrivia = new();
+
+            foreach (var xmlComment in xmlComments)
+            {
+                xmlTrivia = xmlTrivia.AddRange(new[] { xmlComment, SyntaxFactory.CarriageReturnLineFeed });
+            }
+
+            return xmlTrivia;
+        }
+
+        public static SyntaxTriviaList GetXmlCommentLines(IEnumerable<SyntaxTrivia> xmlComments, SyntaxTrivia indentation)
+        {
+            SyntaxTriviaList xmlTrivia = new();
+
+            foreach (var xmlComment in xmlComments)
+            {
+                xmlTrivia = xmlTrivia.AddRange(new[] { indentation, xmlComment, SyntaxFactory.CarriageReturnLineFeed });
+            }
+
+            return xmlTrivia;
         }
     }
 }
