@@ -49,17 +49,18 @@ namespace Tests.PortToTripleSlash
 
         public static IEnumerable<object[]> GetLeadingTriviaTests()
         {
-            yield return new object[] { LoadTestFiles("WhitespaceOnly") };
+            yield return new object[] { "WhitespaceOnly", LoadTestFiles("WhitespaceOnly") };
+            yield return new object[] { "Directives", LoadTestFiles("Directives") };
         }
 
-        private static IEnumerable<SyntaxTrivia> GetTestComments()
+        private static IEnumerable<SyntaxTrivia> GetTestComments(string testName)
         {
-            XmlTextSyntax summaryText = SyntaxFactory.XmlText();
+            XmlTextSyntax summaryText = SyntaxFactory.XmlText(testName);
             XmlElementSyntax summaryElement = SyntaxFactory.XmlSummaryElement(summaryText);
             DocumentationCommentTriviaSyntax summaryComment = SyntaxFactory.DocumentationComment(summaryElement);
             SyntaxTrivia summaryTrivia = SyntaxFactory.Trivia(summaryComment);
 
-            XmlTextSyntax remarksText = SyntaxFactory.XmlText();
+            XmlTextSyntax remarksText = SyntaxFactory.XmlText(testName);
             XmlElementSyntax remarksElement = SyntaxFactory.XmlRemarksElement(remarksText);
             DocumentationCommentTriviaSyntax remarksComment = SyntaxFactory.DocumentationComment(remarksElement);
             SyntaxTrivia remarksTrivia = SyntaxFactory.Trivia(remarksComment);
@@ -69,11 +70,11 @@ namespace Tests.PortToTripleSlash
 
         [Theory]
         [MemberData(nameof(GetLeadingTriviaTests))]
-        public void AddsXmlToClassDeclaration((LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
+        public void AddsXmlToClassDeclaration(string testName, (LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
         {
             var actual = LeadingTriviaRewriter.ApplyXmlComments(
                 test.Original.MyType,
-                GetTestComments()
+                GetTestComments(testName)
             ).GetLeadingTrivia().ToFullString();
 
             var expected = test.Expected.MyType.GetLeadingTrivia().ToFullString();
@@ -83,11 +84,11 @@ namespace Tests.PortToTripleSlash
 
         [Theory]
         [MemberData(nameof(GetLeadingTriviaTests))]
-        public void AddsXmlToEnumDeclaration((LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
+        public void AddsXmlToEnumDeclaration(string testName, (LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
         {
             var actual = LeadingTriviaRewriter.ApplyXmlComments(
                 test.Original.MyEnum,
-                GetTestComments()
+                GetTestComments(testName)
             ).GetLeadingTrivia().ToFullString();
 
             var expected = test.Expected.MyEnum.GetLeadingTrivia().ToFullString();
@@ -97,11 +98,11 @@ namespace Tests.PortToTripleSlash
 
         [Theory]
         [MemberData(nameof(GetLeadingTriviaTests))]
-        public void AddsXmlToFieldDeclaration((LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
+        public void AddsXmlToFieldDeclaration(string testName, (LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
         {
             var actual = LeadingTriviaRewriter.ApplyXmlComments(
                 test.Original.MyField,
-                GetTestComments()
+                GetTestComments(testName)
             ).GetLeadingTrivia().ToFullString();
 
             var expected = test.Expected.MyField.GetLeadingTrivia().ToFullString();
@@ -111,11 +112,11 @@ namespace Tests.PortToTripleSlash
 
         [Theory]
         [MemberData(nameof(GetLeadingTriviaTests))]
-        public void AddsXmlToPropertyDeclaration((LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
+        public void AddsXmlToPropertyDeclaration(string testName, (LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
         {
             var actual = LeadingTriviaRewriter.ApplyXmlComments(
                 test.Original.MyProperty,
-                GetTestComments()
+                GetTestComments(testName)
             ).GetLeadingTrivia().ToFullString();
 
             var expected = test.Expected.MyProperty.GetLeadingTrivia().ToFullString();
@@ -125,11 +126,11 @@ namespace Tests.PortToTripleSlash
 
         [Theory]
         [MemberData(nameof(GetLeadingTriviaTests))]
-        public void AddsXmlToMethodDeclaration((LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
+        public void AddsXmlToMethodDeclaration(string testName, (LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
         {
             var actual = LeadingTriviaRewriter.ApplyXmlComments(
                 test.Original.MyMethod,
-                GetTestComments()
+                GetTestComments(testName)
             ).GetLeadingTrivia().ToFullString();
 
             var expected = test.Expected.MyMethod.GetLeadingTrivia().ToFullString();
