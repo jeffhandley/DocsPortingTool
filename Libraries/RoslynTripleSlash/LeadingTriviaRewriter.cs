@@ -128,6 +128,13 @@ namespace Libraries.RoslynTripleSlash
                 {
                     docsPosition++;
                 }
+
+                // The last step is to walk backwards again through any whitespace
+                // to get back to the beginning of the line.
+                while (docsPosition > 0 && leading[docsPosition.Value - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    docsPosition--;
+                }
             }
 
             // We know where the doc comments will be inserted, but they could go in adjacent to
