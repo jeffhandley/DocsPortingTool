@@ -23,6 +23,43 @@ namespace Libraries.RoslynTripleSlash
             (int)SyntaxKind.SingleLineCommentTrivia
         };
 
+        private static bool IsDocumentationCommentTrivia(this SyntaxTrivia trivia) =>
+            trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
+            trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+
+        private static bool IsDocumentationCommentTriviaContinuation(this SyntaxTrivia trivia) =>
+            trivia.IsDocumentationCommentTrivia() ||
+            trivia.IsKind(SyntaxKind.EndOfLineTrivia) ||
+            trivia.IsKind(SyntaxKind.WhitespaceTrivia);
+
+        public static SyntaxTriviaList WithoutDocumentationComments(this SyntaxTriviaList trivia)
+        {
+            return trivia.WithoutDocumentationComments(out bool _);
+        }
+
+        public static SyntaxTriviaList WithoutDocumentationComments(this SyntaxTriviaList trivia, out bool removed)
+        {
+            int i = 0;
+            removed = false;
+
+            while (i < trivia.Count)
+            {
+                if (trivia[i].IsDocumentationCommentTrivia())
+                {
+                    while (i < trivia.Count && trivia[i].IsDocumentationCommentTriviaContinuation())
+                    {
+                        trivia = trivia.RemoveAt(i);
+                    }
+
+                    removed = true;
+                }
+
+                i++;
+            }
+
+            return trivia;
+        }
+
         public static SyntaxNode ApplyXmlComments(SyntaxNode node, IEnumerable<SyntaxTrivia> xmlComments)
         {
             if (!node.HasLeadingTrivia)
@@ -30,7 +67,7 @@ namespace Libraries.RoslynTripleSlash
                 return node.WithLeadingTrivia(GetXmlCommentLines(xmlComments));
             }
 
-            SyntaxTriviaList leading = node.GetLeadingTrivia();
+            SyntaxTriviaList leading = node.GetLeadingTrivia().WithoutDocumentationComments();
 
             // We will determine the position at which to insert the XML
             // comments. We want to find the spot closest to the declaration
@@ -68,7 +105,9 @@ namespace Libraries.RoslynTripleSlash
                 xmlTrivia = GetXmlCommentLines(xmlComments);
             }
 
-            return node.InsertTriviaBefore(leading[position], xmlTrivia);
+            leading = leading.InsertRange(position, xmlTrivia);
+
+            return node.WithLeadingTrivia(leading);
         }
 
         public static SyntaxTriviaList GetXmlCommentLines(IEnumerable<SyntaxTrivia> xmlComments)

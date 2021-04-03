@@ -22,25 +22,27 @@ namespace Tests.PortToTripleSlash
             public SyntaxNode MyMethod;
         }
 
+        private static LeadingTriviaTestFile LoadTestFile(string fileName)
+        {
+            // We rely on the test data files being marked as Content
+            // and being copied to the output directory
+            string testFolder = "./PortToTripleSlash/TestData/LeadingTrivia";
+            string testContent = File.ReadAllText(Path.Combine(testFolder, fileName));
+
+            IEnumerable<SyntaxNode> nodes = SyntaxFactory.ParseSyntaxTree(testContent).GetRoot().DescendantNodes();
+
+            return new LeadingTriviaTestFile
+            {
+                MyType = nodes.First(n => n.IsKind(SyntaxKind.ClassDeclaration)),
+                MyEnum = nodes.First(n => n.IsKind(SyntaxKind.EnumDeclaration)),
+                MyField = nodes.First(n => n.IsKind(SyntaxKind.FieldDeclaration)),
+                MyProperty = nodes.First(n => n.IsKind(SyntaxKind.PropertyDeclaration)),
+                MyMethod = nodes.First(n => n.IsKind(SyntaxKind.MethodDeclaration))
+            };
+        }
+
         private static (LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) LoadTestFiles(string test)
         {
-            Func<string, LeadingTriviaTestFile> LoadTestFile = (fileName) =>
-            {
-                string testFolder = "../../../PortToTripleSlash/TestData/LeadingTrivia";
-                string testContent = File.ReadAllText(Path.Combine(testFolder, fileName));
-
-                IEnumerable<SyntaxNode> nodes = SyntaxFactory.ParseSyntaxTree(testContent).GetRoot().DescendantNodes();
-
-                return new LeadingTriviaTestFile
-                {
-                    MyType = nodes.First(n => n.IsKind(SyntaxKind.ClassDeclaration)),
-                    MyEnum = nodes.First(n => n.IsKind(SyntaxKind.EnumDeclaration)),
-                    MyField = nodes.First(n => n.IsKind(SyntaxKind.FieldDeclaration)),
-                    MyProperty = nodes.First(n => n.IsKind(SyntaxKind.PropertyDeclaration)),
-                    MyMethod = nodes.First(n => n.IsKind(SyntaxKind.MethodDeclaration))
-                };
-            };
-
             LeadingTriviaTestFile original = LoadTestFile($"{test}.Original.cs");
             LeadingTriviaTestFile expected = LoadTestFile($"{test}.Expected.cs");
 
@@ -49,8 +51,9 @@ namespace Tests.PortToTripleSlash
 
         public static IEnumerable<object[]> GetLeadingTriviaTests()
         {
-            yield return new object[] { "WhitespaceOnly", LoadTestFiles("WhitespaceOnly") };
-            yield return new object[] { "Directives", LoadTestFiles("Directives") };
+            //yield return new object[] { "WhitespaceOnly", LoadTestFiles("WhitespaceOnly") };
+            //yield return new object[] { "Directives", LoadTestFiles("Directives") };
+            yield return new object[] { "ExistingXml", LoadTestFiles("ExistingXml") };
         }
 
         private static IEnumerable<SyntaxTrivia> GetTestComments(string testName)
@@ -66,6 +69,42 @@ namespace Tests.PortToTripleSlash
             SyntaxTrivia remarksTrivia = SyntaxFactory.Trivia(remarksComment);
 
             return new SyntaxTrivia[] { summaryTrivia, remarksTrivia };
+        }
+
+        [Fact]
+        public void WithoutDocumentationComments_RemovesSingleLineDocumentationComments()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia(@"
+                /// <summary>This is the summary</summary>
+                /// <remarks>These are the remarks</remarks>
+                // This is another comment
+                ");
+
+            var actual = LeadingTriviaRewriter.WithoutDocumentationComments(trivia).ToFullString();
+            var expected = @"
+                // This is another comment
+                ";
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void WithoutDocumentationComments_RemovesMultiLineDocumentationComments()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia(@"
+                /**
+                 * <summary>This is the summary</summary>
+                 * <remarks>These are the remarks</remarks>
+                 * */
+                // This is another comment
+                ");
+
+            var actual = LeadingTriviaRewriter.WithoutDocumentationComments(trivia).ToFullString();
+            var expected = @"
+                // This is another comment
+                ";
+
+            Assert.Equal(expected, actual);
         }
 
         [Theory]
