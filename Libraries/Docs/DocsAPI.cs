@@ -211,10 +211,10 @@ namespace Libraries.Docs
 
         public DocsParam SaveParam(XElement xeIntelliSenseXmlParam)
         {
-            XElement xeDocsParam = new XElement(xeIntelliSenseXmlParam.Name);
+            XElement xeDocsParam = new(xeIntelliSenseXmlParam.Name);
             xeDocsParam.ReplaceAttributes(xeIntelliSenseXmlParam.Attributes());
             XmlHelper.SaveFormattedAsXml(xeDocsParam, xeIntelliSenseXmlParam.Value);
-            DocsParam docsParam = new DocsParam(this, xeDocsParam);
+            DocsParam docsParam = new(this, xeDocsParam);
             Changed = true;
             return docsParam;
         }
@@ -234,7 +234,7 @@ namespace Libraries.Docs
 
         public DocsTypeParam AddTypeParam(string name, string value)
         {
-            XElement typeParam = new XElement("typeparam");
+            XElement typeParam = new("typeparam");
             typeParam.SetAttributeValue("name", name);
             XmlHelper.AddChildFormattedAsXml(Docs, typeParam, value);
             Changed = true;
