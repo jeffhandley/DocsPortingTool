@@ -51,9 +51,10 @@ namespace Tests.PortToTripleSlash
 
         public static IEnumerable<object[]> GetLeadingTriviaTests()
         {
-            yield return new object[] { "WhitespaceOnly", LoadTestFiles("WhitespaceOnly") };
-            yield return new object[] { "Directives", LoadTestFiles("Directives") };
-            yield return new object[] { "ExistingXml", LoadTestFiles("ExistingXml") };
+            //yield return new object[] { "WhitespaceOnly", LoadTestFiles("WhitespaceOnly") };
+            //yield return new object[] { "Directives", LoadTestFiles("Directives") };
+            //yield return new object[] { "ExistingXml", LoadTestFiles("ExistingXml") };
+            yield return new object[] { "DirectivesExistingXml", LoadTestFiles("DirectivesExistingXml") };
         }
 
         private static IEnumerable<SyntaxTrivia> GetTestComments(string testName)
@@ -74,11 +75,12 @@ namespace Tests.PortToTripleSlash
         [Fact]
         public void WithoutDocumentationComments_RemovesSingleLineDocumentationComments()
         {
-            var trivia = SyntaxFactory.ParseLeadingTrivia(@"
+            var trivia = SyntaxFactory.ParseSyntaxTree(@"
                 /// <summary>This is the summary</summary>
                 /// <remarks>These are the remarks</remarks>
                 // This is another comment
-                ");
+                public int field;
+                ").GetRoot().GetLeadingTrivia();
 
             var actual = LeadingTriviaRewriter.WithoutDocumentationComments(trivia).ToFullString();
             var expected = @"
@@ -91,13 +93,14 @@ namespace Tests.PortToTripleSlash
         [Fact]
         public void WithoutDocumentationComments_RemovesMultiLineDocumentationComments()
         {
-            var trivia = SyntaxFactory.ParseLeadingTrivia(@"
+            var trivia = SyntaxFactory.ParseSyntaxTree(@"
                 /**
                  * <summary>This is the summary</summary>
                  * <remarks>These are the remarks</remarks>
                  * */
                 // This is another comment
-                ");
+                public int field;
+                ").GetRoot().GetLeadingTrivia();
 
             var actual = LeadingTriviaRewriter.WithoutDocumentationComments(trivia).ToFullString();
             var expected = @"
