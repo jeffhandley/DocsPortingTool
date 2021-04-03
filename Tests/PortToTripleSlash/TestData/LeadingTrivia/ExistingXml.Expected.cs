@@ -1,17 +1,17 @@
 ﻿namespace LeadingTriviaTestData.ExistingXml.Expected
 {
+    // Single line comment to keep above the XML comments
     /// <summary>ExistingXml</summary>
     /// <remarks>ExistingXml</remarks>
-    // Single line comment to keep, but it should remain below the XML comments
     /* Multi-line comment to keep
-     * But it should remain below the XML comments */
+     * below the XML comments */
     public class MyType
     {
+        // Single line comment to keep above the XML comments
         /// <summary>ExistingXml</summary>
         /// <remarks>ExistingXml</remarks>
-        // Single line comment to keep, but it should remain below the XML comments
         /* Multi-line comment to keep
-         * But it should remain below the XML comments */
+         * below the XML comments */
         public enum MyEnum
         {
             FirstValue = 1,
@@ -19,18 +19,18 @@
             ThirdValue,
         }
 
+        // Single line comment to keep above the XML comments
         /// <summary>ExistingXml</summary>
         /// <remarks>ExistingXml</remarks>
-        // Single line comment to keep, but it should remain below the XML comments
         /* Multi-line comment to keep
-         * But it should remain below the XML comments */
+         * below the XML comments */
         public int MyField;
 
+        // Single line comment to keep above the XML comments
         /// <summary>ExistingXml</summary>
         /// <remarks>ExistingXml</remarks>
-        // Single line comment to keep, but it should remain below the XML comments
         /* Multi-line comment to keep
-         * But it should remain below the XML comments */
+         * below the XML comments */
         public string MyProperty
         {
             get
@@ -43,11 +43,11 @@
             }
         }
 
+        // Single line comment to keep above the XML comments
         /// <summary>ExistingXml</summary>
         /// <remarks>ExistingXml</remarks>
-        // Single line comment to keep, but it should remain below the XML comments
         /* Multi-line comment to keep
-         * But it should remain below the XML comments */
+         * below the XML comments */
         public bool MyMethod()
         {
             return true;

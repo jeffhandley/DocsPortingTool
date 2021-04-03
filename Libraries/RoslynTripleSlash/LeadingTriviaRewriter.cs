@@ -34,13 +34,13 @@ namespace Libraries.RoslynTripleSlash
 
         public static SyntaxTriviaList WithoutDocumentationComments(this SyntaxTriviaList trivia)
         {
-            return trivia.WithoutDocumentationComments(out bool _);
+            return trivia.WithoutDocumentationComments(out int? _);
         }
 
-        public static SyntaxTriviaList WithoutDocumentationComments(this SyntaxTriviaList trivia, out bool removed)
+        public static SyntaxTriviaList WithoutDocumentationComments(this SyntaxTriviaList trivia, out int? existingDocsPosition)
         {
             int i = 0;
-            removed = false;
+            existingDocsPosition = null;
 
             while (i < trivia.Count)
             {
@@ -51,7 +51,7 @@ namespace Libraries.RoslynTripleSlash
                         trivia = trivia.RemoveAt(i);
                     }
 
-                    removed = true;
+                    existingDocsPosition = i;
                 }
 
                 i++;
@@ -67,68 +67,54 @@ namespace Libraries.RoslynTripleSlash
                 return node.WithLeadingTrivia(GetXmlCommentLines(xmlComments));
             }
 
-            SyntaxTriviaList leading = node.GetLeadingTrivia().WithoutDocumentationComments();
+            SyntaxTriviaList leading = node.GetLeadingTrivia().WithoutDocumentationComments(out int? docsPosition);
 
-            // We will determine the position at which to insert the XML
-            // comments. We want to find the spot closest to the declaration
-            // that makes sense, so we walk upward through the leading trivia
-            // until we find nodes we need to stay beneath. Then, we walk back
-            // downward until we find the first node to stay above.
-            int position = leading.Count;
-
-            while (position > 0 && !UpperBoundaries.Contains(leading[position - 1].RawKind))
+            if (docsPosition is null)
             {
-                position--;
+                // We will determine the position at which to insert the XML
+                // comments. We want to find the spot closest to the declaration
+                // that makes sense, so we walk upward through the leading trivia
+                // until we find nodes we need to stay beneath. Then, we walk back
+                // downward until we find the first node to stay above.
+                docsPosition = leading.Count;
+
+                while (docsPosition > 0 && !UpperBoundaries.Contains(leading[docsPosition.Value - 1].RawKind))
+                {
+                    docsPosition--;
+                }
+
+                while (docsPosition < leading.Count - 1 && !LowerBoundaries.Contains(leading[docsPosition.Value].RawKind))
+                {
+                    docsPosition++;
+                }
             }
 
-            while (position < leading.Count - 1 && !LowerBoundaries.Contains(leading[position].RawKind))
+            // Given the intended position of the docs, we now walk backwards through any whitespace
+            // We will insert at the beginning of the line, but match the whitespace for indentation
+            SyntaxTriviaList indentation = new();
+
+            while (docsPosition > 0 && leading[docsPosition.Value - 1].IsKind(SyntaxKind.WhitespaceTrivia))
             {
-                position++;
+                docsPosition--;
+                indentation = indentation.Insert(0, leading[docsPosition.Value]);
             }
 
-            // Now we know the trivia we need to remain above. Walk backward through any whitespace;
-            while (position > 0 && leading[position - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                position--;
-            }
-
-            // Now we will construct the XML trivia. If the position we'll use is whitespace,
-            // then we use that to indent the XML comments too.
-            SyntaxTriviaList xmlTrivia;
-
-            if (leading[position].IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                xmlTrivia = GetXmlCommentLines(xmlComments, leading[position]);
-            }
-            else
-            {
-                xmlTrivia = GetXmlCommentLines(xmlComments);
-            }
-
-            leading = leading.InsertRange(position, xmlTrivia);
-
-            return node.WithLeadingTrivia(leading);
+            // Insert the XML comment lines at the docs position, indenting each line to match
+            return node.WithLeadingTrivia(
+                leading.InsertRange(docsPosition.Value, GetXmlCommentLines(xmlComments, indentation))
+            );
         }
 
-        public static SyntaxTriviaList GetXmlCommentLines(IEnumerable<SyntaxTrivia> xmlComments)
+        public static SyntaxTriviaList GetXmlCommentLines(IEnumerable<SyntaxTrivia> xmlComments, SyntaxTriviaList indentation = new())
         {
             SyntaxTriviaList xmlTrivia = new();
 
             foreach (var xmlComment in xmlComments)
             {
-                xmlTrivia = xmlTrivia.AddRange(new[] { xmlComment, SyntaxFactory.CarriageReturnLineFeed });
-            }
-
-            return xmlTrivia;
-        }
-
-        public static SyntaxTriviaList GetXmlCommentLines(IEnumerable<SyntaxTrivia> xmlComments, SyntaxTrivia indentation)
-        {
-            SyntaxTriviaList xmlTrivia = new();
-
-            foreach (var xmlComment in xmlComments)
-            {
-                xmlTrivia = xmlTrivia.AddRange(new[] { indentation, xmlComment, SyntaxFactory.CarriageReturnLineFeed });
+                xmlTrivia = xmlTrivia
+                    .AddRange(indentation)
+                    .Add(xmlComment)
+                    .Add(SyntaxFactory.CarriageReturnLineFeed);
             }
 
             return xmlTrivia;
