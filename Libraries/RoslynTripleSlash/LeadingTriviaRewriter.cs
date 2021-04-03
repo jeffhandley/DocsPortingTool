@@ -38,6 +38,20 @@ namespace Libraries.RoslynTripleSlash
             return trivia.WithoutDocumentationComments(out int? _);
         }
 
+        public static SyntaxTriviaList GetFinalWhitespace(this SyntaxTriviaList trivia)
+        {
+            SyntaxTriviaList indentation = new();
+            int index = trivia.Count;
+            
+            while (index > 0 && trivia[index - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                index--;
+                indentation = indentation.Insert(0, trivia[index]);
+            }
+
+            return indentation;
+        }
+
         public static SyntaxTriviaList WithoutDocumentationComments(this SyntaxTriviaList trivia, out int? existingDocsPosition)
         {
             int i = 0;
@@ -45,14 +59,7 @@ namespace Libraries.RoslynTripleSlash
 
             // Before we start removing the doc comments, we need to capture any whitespace at
             // the very end of the trivia, because it could represent indentation of the API.
-            SyntaxTriviaList indentation = new();
-            int indentationPosition = trivia.Count;
-
-            while (indentationPosition > 0 && trivia[indentationPosition - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                indentationPosition--;
-                indentation = indentation.Insert(0, trivia[indentationPosition]);
-            }
+            SyntaxTriviaList indentation = trivia.GetFinalWhitespace();
 
             while (i < trivia.Count)
             {
@@ -141,14 +148,7 @@ namespace Libraries.RoslynTripleSlash
             // pragmas or other trivia where the indentation might not match the API being
             // documented. Look at the end of the trivia (just before the API), and clone the
             // indentation for use in front of each line of documentation comments.
-            SyntaxTriviaList indentation = new();
-            int indentationPosition = leading.Count;
-
-            while (indentationPosition > 0 && leading[indentationPosition - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                indentationPosition--;
-                indentation = indentation.Insert(0, leading[indentationPosition]);
-            }
+            SyntaxTriviaList indentation = leading.GetFinalWhitespace();
 
             // Insert the XML comment lines with the collected indentation
             return node.WithLeadingTrivia(
