@@ -20,7 +20,6 @@
     <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Original.cs" />
     <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Expected.cs" />
     <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Original.cs" />
-    <!--Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\*.cs" /-->
   </ItemGroup>
 
   <ItemGroup>
@@ -76,7 +75,6 @@
     <None Include="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\MyAssembly.csproj" />
-    <!--None Include="PortToTripleSlash\TestData\LeadingTrivia\*.cs" /-->
   </ItemGroup>
 
 </Project>
