@@ -51,8 +51,8 @@ namespace Tests.PortToTripleSlash
 
         public static IEnumerable<object[]> GetLeadingTriviaTests()
         {
-            //yield return new object[] { "WhitespaceOnly", LoadTestFiles("WhitespaceOnly") };
-            //yield return new object[] { "Directives", LoadTestFiles("Directives") };
+            yield return new object[] { "WhitespaceOnly", LoadTestFiles("WhitespaceOnly") };
+            yield return new object[] { "Directives", LoadTestFiles("Directives") };
             yield return new object[] { "ExistingXml", LoadTestFiles("ExistingXml") };
         }
 
