@@ -10,7 +10,7 @@ namespace Libraries.RoslynTripleSlash
 {
     public static class LeadingTriviaRewriter
     {
-        private static int[] UpperBoundaries = new[]
+        private static int[] TriviaAboveDocComments = new[]
         {
             (int)SyntaxKind.RegionDirectiveTrivia,
             (int)SyntaxKind.PragmaWarningDirectiveTrivia,
@@ -18,9 +18,10 @@ namespace Libraries.RoslynTripleSlash
             (int)SyntaxKind.EndIfDirectiveTrivia,
         };
 
-        public static int[] LowerBoundaries = new[]
+        public static int[] TriviaBelowDocComments = new[]
         {
-            (int)SyntaxKind.SingleLineCommentTrivia
+            (int)SyntaxKind.SingleLineCommentTrivia,
+            (int)SyntaxKind.MultiLineCommentTrivia
         };
 
         private static bool IsDocumentationCommentTrivia(this SyntaxTrivia trivia) =>
@@ -78,12 +79,12 @@ namespace Libraries.RoslynTripleSlash
                 // downward until we find the first node to stay above.
                 docsPosition = leading.Count;
 
-                while (docsPosition > 0 && !UpperBoundaries.Contains(leading[docsPosition.Value - 1].RawKind))
+                while (docsPosition > 0 && !TriviaAboveDocComments.Contains(leading[docsPosition.Value - 1].RawKind))
                 {
                     docsPosition--;
                 }
 
-                while (docsPosition < leading.Count - 1 && !LowerBoundaries.Contains(leading[docsPosition.Value].RawKind))
+                while (docsPosition < leading.Count && !TriviaBelowDocComments.Contains(leading[docsPosition.Value].RawKind))
                 {
                     docsPosition++;
                 }
