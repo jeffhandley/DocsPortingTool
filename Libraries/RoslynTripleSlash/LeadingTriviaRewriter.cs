@@ -43,16 +43,56 @@ namespace Libraries.RoslynTripleSlash
             int i = 0;
             existingDocsPosition = null;
 
+            // Before we start removing the doc comments, we need to capture any whitespace at
+            // the very end of the trivia, because it could represent indentation of the API.
+            SyntaxTriviaList indentation = new();
+            int indentationPosition = trivia.Count;
+
+            while (indentationPosition > 0 && trivia[indentationPosition - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                indentationPosition--;
+                indentation = indentation.Insert(0, trivia[indentationPosition]);
+            }
+
             while (i < trivia.Count)
             {
                 if (trivia[i].IsDocumentationCommentTrivia())
                 {
-                    while (i < trivia.Count && trivia[i].IsDocumentationCommentTriviaContinuation())
+                    var commentStart = i;
+                    var commentEnd = i;
+
+                    // Walk backward through whitespace to find the beginning of the doc comment
+                    // Now walk the doc comment position backward through any of its indentation trivia
+                    while (commentStart > 0 && trivia[commentStart - 1].IsKind(SyntaxKind.WhitespaceTrivia))
                     {
-                        trivia = trivia.RemoveAt(i);
+                        commentStart--;
                     }
 
-                    existingDocsPosition = i;
+                    // Walk forward to find the end of the doc comment, but do not go past the
+                    // beginning of the API documentation.
+                    while (commentEnd < trivia.Count - indentation.Count && trivia[commentEnd + 1].IsDocumentationCommentTriviaContinuation())
+                    {
+                        commentEnd++;
+                    }
+
+                    // Finally, walk the end position backthrough any indentation (for other
+                    // lines before the API itself).
+                    while (commentEnd >= commentStart && trivia[commentEnd].IsKind(SyntaxKind.WhitespaceTrivia))
+                    {
+                        commentEnd--;
+                    }
+
+                    // Remove the trivia from beginning to end of this doc comment
+                    while (commentEnd >= commentStart)
+                    {
+                        trivia = trivia.RemoveAt(commentStart);
+                        commentEnd--;
+                    }
+
+                    // Capture the first documentation comment position
+                    // If there were disjoint doc comments, we will
+                    // anchor on the first occurrence
+                    existingDocsPosition ??= commentStart;
                 }
 
                 i++;
@@ -90,17 +130,20 @@ namespace Libraries.RoslynTripleSlash
                 }
             }
 
-            // Given the intended position of the docs, we now walk backwards through any whitespace
-            // We will insert at the beginning of the line, but match the whitespace for indentation
+            // We know where the doc comments will be inserted, but they could go in adjacent to
+            // pragmas or other trivia where the indentation might not match the API being
+            // documented. Look at the end of the trivia (just before the API), and clone the
+            // indentation for use in front of each line of documentation comments.
             SyntaxTriviaList indentation = new();
+            int indentationPosition = leading.Count;
 
-            while (docsPosition > 0 && leading[docsPosition.Value - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            while (indentationPosition > 0 && leading[indentationPosition - 1].IsKind(SyntaxKind.WhitespaceTrivia))
             {
-                docsPosition--;
-                indentation = indentation.Insert(0, leading[docsPosition.Value]);
+                indentationPosition--;
+                indentation = indentation.Insert(0, leading[indentationPosition]);
             }
 
-            // Insert the XML comment lines at the docs position, indenting each line to match
+            // Insert the XML comment lines with the collected indentation
             return node.WithLeadingTrivia(
                 leading.InsertRange(docsPosition.Value, GetXmlCommentLines(xmlComments, indentation))
             );
