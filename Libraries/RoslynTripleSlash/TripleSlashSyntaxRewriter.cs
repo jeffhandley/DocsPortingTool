@@ -924,23 +924,35 @@ namespace Libraries.RoslynTripleSlash
             text = Regex.Replace(text, RegexMarkdownCodeStartPattern, RegexXmlCodeStartReplacement);
             text = Regex.Replace(text, RegexMarkdownCodeEndPattern, RegexXmlCodeEndReplacement);
 
-            // langwords|parameters|typeparams
-            MatchCollection collection = Regex.Matches(text, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
+            // langwords|parameters|typeparams and other type references within markdown backticks
+            MatchCollection collection = Regex.Matches(text, @"(?<backtickContent>`(?<backtickedApi>[a-zA-Z0-9_]+(?<genericType>\<(?<typeParam>[a-zA-Z0-9_,]+)\>){0,1})`)");
             foreach (Match match in collection)
             {
-                string backtickedParam = match.Groups["backtickedParam"].Value;
-                string paramName = match.Groups["paramName"].Value;
-                if (ReservedKeywords.Any(x => x == paramName))
+                string backtickContent = match.Groups["backtickContent"].Value;
+                string backtickedApi = match.Groups["backtickedApi"].Value;
+                Group genericType = match.Groups["genericType"];
+                Group typeParam = match.Groups["typeParam"];
+
+                if (genericType.Success && typeParam.Success)
                 {
-                    text = Regex.Replace(text, $"{backtickedParam}", $"<see langword=\"{paramName}\" />");
+                    backtickedApi = backtickedApi.Replace(genericType.Value, $"{{{typeParam.Value}}}");
                 }
-                else if (docsParams.Any(x => x.Name == paramName))
+
+                if (ReservedKeywords.Any(x => x == backtickedApi))
                 {
-                    text = Regex.Replace(text, $"{backtickedParam}", $"<paramref name=\"{paramName}\" />");
+                    text = Regex.Replace(text, $"{backtickContent}", $"<see langword=\"{backtickedApi}\" />");
                 }
-                else if (docsTypeParams.Any(x => x.Name == paramName))
+                else if (docsParams.Any(x => x.Name == backtickedApi))
                 {
-                    text = Regex.Replace(text, $"{backtickedParam}", $"<typeparamref name=\"{paramName}\" />");
+                    text = Regex.Replace(text, $"{backtickContent}", $"<paramref name=\"{backtickedApi}\" />");
+                }
+                else if (docsTypeParams.Any(x => x.Name == backtickedApi))
+                {
+                    text = Regex.Replace(text, $"{backtickContent}", $"<typeparamref name=\"{backtickedApi}\" />");
+                }
+                else
+                {
+                    text = Regex.Replace(text, $"{backtickContent}", $"<see cref=\"{backtickedApi}\" />");
                 }
             }
 
