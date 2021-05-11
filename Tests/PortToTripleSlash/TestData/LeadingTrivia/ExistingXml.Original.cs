@@ -72,5 +72,19 @@
         {
             return true;
         }
+
+        // Single line comment to keep above the XML comments
+        /// <summary>
+        /// This was the original summary
+        /// </summary>
+        /// <remarks>
+        /// These were the original remarks
+        /// </remarks>
+        /* Multi-line comment to keep
+         * below the XML comments */
+        public interface MyInterface
+        {
+            bool IsInterface { get; }
+        }
     }
 }

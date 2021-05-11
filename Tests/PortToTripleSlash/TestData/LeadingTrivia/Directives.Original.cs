@@ -47,6 +47,11 @@
         {
             return true;
         }
+
+        public interface MyInterface
+        {
+            bool IsInterface { get; }
+        }
 #endif
     }
 }

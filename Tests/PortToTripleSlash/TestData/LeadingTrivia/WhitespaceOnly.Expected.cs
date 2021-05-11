@@ -37,5 +37,12 @@
         {
             return true;
         }
+
+        /// <summary>WhitespaceOnly</summary>
+        /// <remarks>WhitespaceOnly</remarks>
+        public interface MyInterface
+        {
+            bool IsInterface { get; }
+        }
     }
 }

@@ -20,6 +20,7 @@ namespace Tests.PortToTripleSlash
             public SyntaxNode MyField;
             public SyntaxNode MyProperty;
             public SyntaxNode MyMethod;
+            public SyntaxNode MyInterface;
         }
 
         private static LeadingTriviaTestFile LoadTestFile(string fileName)
@@ -37,7 +38,8 @@ namespace Tests.PortToTripleSlash
                 MyEnum = nodes.First(n => n.IsKind(SyntaxKind.EnumDeclaration)),
                 MyField = nodes.First(n => n.IsKind(SyntaxKind.FieldDeclaration)),
                 MyProperty = nodes.First(n => n.IsKind(SyntaxKind.PropertyDeclaration)),
-                MyMethod = nodes.First(n => n.IsKind(SyntaxKind.MethodDeclaration))
+                MyMethod = nodes.First(n => n.IsKind(SyntaxKind.MethodDeclaration)),
+                MyInterface = nodes.First(n => n.IsKind(SyntaxKind.InterfaceDeclaration))
             };
         }
 
@@ -176,6 +178,20 @@ namespace Tests.PortToTripleSlash
             ).GetLeadingTrivia().ToFullString();
 
             var expected = test.Expected.MyMethod.GetLeadingTrivia().ToFullString();
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetLeadingTriviaTests))]
+        public void AddsXmlToInterfaceDeclaration(string testName, (LeadingTriviaTestFile Original, LeadingTriviaTestFile Expected) test)
+        {
+            var actual = LeadingTriviaRewriter.ApplyXmlComments(
+                test.Original.MyInterface,
+                GetTestComments(testName)
+            ).GetLeadingTrivia().ToFullString();
+
+            var expected = test.Expected.MyInterface.GetLeadingTrivia().ToFullString();
 
             Assert.Equal(expected, actual);
         }

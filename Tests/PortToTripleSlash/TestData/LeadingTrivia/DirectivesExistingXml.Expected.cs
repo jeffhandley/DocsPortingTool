@@ -57,6 +57,13 @@
         {
             return true;
         }
+
+        /// <summary>DirectivesExistingXml</summary>
+        /// <remarks>DirectivesExistingXml</remarks>
+        public interface MyInterface
+        {
+            bool IsInterface { get; }
+        }
 #endif
     }
 }

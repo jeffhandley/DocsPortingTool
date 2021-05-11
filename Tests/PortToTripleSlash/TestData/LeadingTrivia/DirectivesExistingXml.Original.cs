@@ -77,6 +77,17 @@
         {
             return true;
         }
+
+        /// <summary>
+        /// This is the original summary
+        /// </summary>
+        /// <remarks>
+        /// These are the existing remarks
+        /// </remarks>
+        public interface MyInterface
+        {
+            bool IsInterface { get; }
+        }
 #endif
     }
 }
