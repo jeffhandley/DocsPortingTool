@@ -2,7 +2,7 @@
 
 namespace Libraries.Docs
 {
-    internal class DocsParam
+    public class DocsParam
     {
         private readonly XElement XEDocsParam;
         public IDocsAPI ParentAPI

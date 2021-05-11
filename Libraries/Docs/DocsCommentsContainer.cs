@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    internal class DocsCommentsContainer
+    public class DocsCommentsContainer
     {
         private Configuration Config { get; set; }
 

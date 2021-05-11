@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    internal abstract class DocsAPI : IDocsAPI
+    public abstract class DocsAPI : IDocsAPI
     {
         private string? _docIdEscaped = null;
         private List<DocsParam>? _params;

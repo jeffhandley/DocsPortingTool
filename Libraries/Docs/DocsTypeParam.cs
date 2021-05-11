@@ -6,7 +6,7 @@ namespace Libraries.Docs
     /// <summary>
     /// Each one of these typeparam objects live inside the Docs section inside the Member object.
     /// </summary>
-    internal class DocsTypeParam
+    public class DocsTypeParam
     {
         private readonly XElement XEDocsTypeParam;
         public IDocsAPI ParentAPI

@@ -2,7 +2,7 @@
 
 namespace Libraries.Docs
 {
-    internal class DocsAttribute
+    public class DocsAttribute
     {
         private readonly XElement XEAttribute;
 

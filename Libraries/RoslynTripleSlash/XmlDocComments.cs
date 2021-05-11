@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace Libraries.RoslynTripleSlash
 {
-    internal static class XmlDocComments
+    public static class XmlDocComments
     {
         private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
 
