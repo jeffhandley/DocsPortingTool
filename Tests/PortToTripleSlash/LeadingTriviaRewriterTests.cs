@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace Tests.PortToTripleSlash
+namespace Libraries.Tests.PortToTripleSlash
 {
     public class LeadingTriviaRewriterTests
     {

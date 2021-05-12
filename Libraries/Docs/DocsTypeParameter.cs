@@ -56,6 +56,18 @@ namespace Libraries.Docs
             }
         }
 
+        public string ConstraintsInterfaceName
+        {
+            get
+            {
+                if (Constraints != null)
+                {
+                    return XmlHelper.GetChildElementValue(Constraints, "InterfaceName");
+                }
+                return string.Empty;
+            }
+        }
+
         public DocsTypeParameter(XElement xeTypeParameter)
         {
             XETypeParameter = xeTypeParameter;
