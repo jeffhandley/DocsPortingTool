@@ -8,22 +8,35 @@ namespace Libraries.Docs
 {
     public class DocsRemarks : DocsTextElement
     {
-        public DocsTextFormat Format { get; private set; }
+        public DocsTextFormat OriginalFormat { get; private set; }
+        public DocsTextFormat ParsedFormat { get; private set; }
 
         public DocsRemarks(XElement xeRemarks) : base(xeRemarks)
         {
         }
 
-        protected override IEnumerable<XNode> ParseNodes(IEnumerable<XNode> nodes) =>
-            base.ParseNodes(nodes).Select(CheckForMarkdown);
+        protected override XNode? ParseNode(XNode node) =>
+            CheckForMarkdown(base.ParseNode(node));
 
-        private XNode CheckForMarkdown(XNode node)
+        private static readonly Regex RemarksHeaderPattern = new(@"^\s*##\s*Remarks\s*$", RegexOptions.IgnoreCase);
+
+        protected override string? ParseTextLine(string line)
+        {
+            if (RemarksHeaderPattern.IsMatch(line))
+            {
+                return null;
+            }
+
+            return line;
+        }
+
+        private XNode? CheckForMarkdown(XNode? node)
         {
             if (node is XElement element && element.Name == "format")
             {
                 if (element.Attribute("type")?.Value == "text/markdown")
                 {
-                    Format = DocsTextFormat.Markdown;
+                    OriginalFormat = DocsTextFormat.Markdown;
                 }
 
                 if (element.FirstNode is XCData cdata)
@@ -37,12 +50,6 @@ namespace Libraries.Docs
             return node;
         }
 
-        protected override IQueryable<string> ParseTextLines(IQueryable<string> lines) =>
-            RemoveRemarksHeader(base.ParseTextLines(lines));
 
-        private static readonly Regex RemarksHeaderPattern = new(@"^##\s*Remarks\s*$", RegexOptions.IgnoreCase);
-
-        private static IQueryable<string> RemoveRemarksHeader(IQueryable<string> lines) =>
-            lines.Where(l => !RemarksHeaderPattern.IsMatch(l));
     }
 }

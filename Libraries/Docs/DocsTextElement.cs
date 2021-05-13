@@ -23,8 +23,10 @@ namespace Libraries.Docs
                 if (_parsedNodes is null)
                 {
                     // Clone the element for non-mutating parsing
-                    XElement cloned = XElement.Parse(Element.ToString());
-                    _parsedNodes = ParseNodes(cloned.Nodes());
+                    var cloned = XElement.Parse(Element.ToString()).Nodes();
+
+                    // Parse each node and filter out nulls
+                    _parsedNodes = cloned.Select(ParseNode).OfType<XNode>();
                 }
 
                 return _parsedNodes;
@@ -37,10 +39,12 @@ namespace Libraries.Docs
             {
                 if (_parsedText is null)
                 {
-                    var lines = JoinNodes(ParsedNodes).Split(Environment.NewLine, StringSplitOptions.TrimEntries).AsQueryable();
-                    lines = ParseTextLines(lines);
+                    IEnumerable<string> lines = JoinNodes(ParsedNodes).Split(Environment.NewLine);
 
-                    _parsedText = JoinLines(lines);
+                    // Parse each line and filter out nulls
+                    lines = ParseTextLines(lines.Select(ParseTextLine));
+
+                    _parsedText = string.Join(Environment.NewLine, lines);
                 }
 
                 return _parsedText;
@@ -54,19 +58,40 @@ namespace Libraries.Docs
             RawText = JoinNodes(RawNodes);
         }
 
-        protected virtual IEnumerable<XNode> ParseNodes(IEnumerable<XNode> nodes) =>
-            nodes.Select(FormatDocReference);
+        protected virtual XNode? ParseNode(XNode node) =>
+            RewriteDocReferences(node);
 
-        protected virtual IQueryable<string> ParseTextLines(IQueryable<string> lines) =>
-            lines.Where(line => !string.IsNullOrWhiteSpace(line));
+        protected virtual IEnumerable<string> ParseTextLines(IEnumerable<string?> lines) =>
+            lines.Where(line => !string.IsNullOrWhiteSpace(line)).OfType<string>().Select(line => line.Trim());
 
-        protected static string JoinNodes(IEnumerable<XNode> nodes) =>
+        protected virtual string? ParseTextLine(string line) => line;
+
+        private static string JoinNodes(IEnumerable<XNode> nodes) =>
             string.Join("", nodes);
 
-        protected static string JoinLines(IEnumerable<string> lines) =>
-            string.Join(Environment.NewLine, lines);
+        //public IEnumerable<DocsTextBlock> Parse(XNode node)
+        //{
+        //    DocsTextFormat format = DocsTextFormat.PlainText;
+        //    string text;
 
-        private static XNode FormatDocReference(XNode node)
+        //    if (node is XElement element && element.Name == "format")
+        //    {
+        //        if (element.Attribute("type")?.Value == "text/markdown")
+        //        {
+        //            format = DocsTextFormat.Markdown;
+        //        }
+
+        //        text = (element.FirstNode is XCData cdata) ? cdata.Value : element.Value;
+        //    }
+        //    else
+        //    {
+        //        text = node.ToString();
+        //    }
+
+        //    return (format == DocsTextFormat.Markdown) ? ParseMarkdown(text) : ParseText(text);
+        //}
+
+        protected static XNode RewriteDocReferences(XNode node)
         {
             if (node is XElement element)
             {
