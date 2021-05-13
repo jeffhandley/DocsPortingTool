@@ -17,29 +17,23 @@ namespace Libraries.Docs.Tests
             Assert.Equal("MyAssembly", assembly.AssemblyName);
         }
 
-        [Fact]
-        public void ExtractsOneAssemblyVersion()
+        [Theory]
+        [InlineData(@"
+            <AssemblyInfo>
+                <AssemblyVersion>4.0.0.0</AssemblyVersion>
+            </AssemblyInfo>",
+            new string[] { "4.0.0.0" })]
+        [InlineData(@"
+            <AssemblyInfo>
+                <AssemblyVersion>4.0.0.0</AssemblyVersion>
+                <AssemblyVersion>5.0.0.0</AssemblyVersion>
+            </AssemblyInfo>",
+            new string[] { "4.0.0.0", "5.0.0.0" })]
+        public void ExtractsOneAssemblyVersion(string xml, string[] expected)
         {
-            var assembly = new DocsAssemblyInfo(XElement.Parse(@"
-                <AssemblyInfo>
-                    <AssemblyVersion>4.0.0.0</AssemblyVersion>
-                </AssemblyInfo>"
-            ));
+            var assembly = new DocsAssemblyInfo(XElement.Parse(xml));
 
-            Assert.Equal(new string[] { "4.0.0.0" }, assembly.AssemblyVersions);
-        }
-
-        [Fact]
-        public void ExtractsMultipleAssemblyVersions()
-        {
-            var assembly = new DocsAssemblyInfo(XElement.Parse(@"
-                <AssemblyInfo>
-                    <AssemblyVersion>4.0.0.0</AssemblyVersion>
-                    <AssemblyVersion>5.0.0.0</AssemblyVersion>
-                </AssemblyInfo>"
-            ));
-
-            Assert.Equal(new string[] { "4.0.0.0", "5.0.0.0" }, assembly.AssemblyVersions);
+            Assert.Equal(expected, assembly.AssemblyVersions);
         }
     }
 }
