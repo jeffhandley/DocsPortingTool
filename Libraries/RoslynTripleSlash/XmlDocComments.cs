@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -33,11 +34,11 @@ namespace Libraries.RoslynTripleSlash
             { "System.Void", "void" }
         };
 
-        // Note that we need to support generics that use the ` literal as well as the escaped %60
-        private static readonly string ValidRegexChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;]|(%60|`)\d+";
+        // Note that we need to support generics that use the ` literal as well as any url encoded character
+        private static readonly string ValidRegexChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;]|`\d+|%\w{2}";
         private static readonly string ValidExtraChars = @"\?=";
 
-        private static readonly string RegexDocIdPattern = @"(?<prefix>[A-Za-z]{1}:)?(?<docId>(" + ValidRegexChars + @")+)(?<overload>%2[aA])?(?<extraVars>\?(" + ValidRegexChars + @")+=(" + ValidRegexChars + @")+)?";
+        private static readonly string RegexDocIdPattern = @"(?<prefix>[A-Za-z]{1}:)?(?<docId>(" + ValidRegexChars + @")+)?(?<extraVars>\?(" + ValidRegexChars + @")+=(" + ValidRegexChars + @")+)?";
         private static readonly string RegexXmlCrefPattern = "cref=\"" + RegexDocIdPattern + "\"";
         private static readonly string RegexMarkdownXrefPattern = @"(?<xref><xref:" + RegexDocIdPattern + ">)";
 
@@ -208,6 +209,7 @@ namespace Libraries.RoslynTripleSlash
         public static SyntaxTriviaList GetAltMember(string cref, SyntaxTriviaList leadingWhitespace)
         {
             cref = RemoveCrefPrefix(cref);
+            cref = MapDocIdGenericsToCrefGenerics(cref);
             XmlAttributeSyntax attribute = SyntaxFactory.XmlTextAttribute("cref", cref);
             XmlEmptyElementSyntax emptyElement = SyntaxFactory.XmlEmptyElement(SyntaxFactory.XmlName(SyntaxFactory.Identifier("altmember")), new SyntaxList<XmlAttributeSyntax>(attribute));
             return GetXmlTrivia(emptyElement, leadingWhitespace);
@@ -486,23 +488,35 @@ namespace Libraries.RoslynTripleSlash
             text = Regex.Replace(text, RegexMarkdownCodeStartPattern, RegexXmlCodeStartReplacement);
             text = Regex.Replace(text, RegexMarkdownCodeEndPattern, RegexXmlCodeEndReplacement);
 
-            // langwords|parameters|typeparams
-            MatchCollection collection = Regex.Matches(text, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
+            // langwords|parameters|typeparams and other type references within markdown backticks
+            MatchCollection collection = Regex.Matches(text, @"(?<backtickContent>`(?<backtickedApi>[a-zA-Z0-9_]+(?<genericType>\<(?<typeParam>[a-zA-Z0-9_,]+)\>){0,1})`)");
             foreach (Match match in collection)
             {
-                string backtickedParam = match.Groups["backtickedParam"].Value;
-                string paramName = match.Groups["paramName"].Value;
-                if (ReservedKeywords.Any(x => x == paramName))
+                string backtickContent = match.Groups["backtickContent"].Value;
+                string backtickedApi = match.Groups["backtickedApi"].Value;
+                Group genericType = match.Groups["genericType"];
+                Group typeParam = match.Groups["typeParam"];
+
+                if (genericType.Success && typeParam.Success)
                 {
-                    text = Regex.Replace(text, $"{backtickedParam}", $"<see langword=\"{paramName}\" />");
+                    backtickedApi = backtickedApi.Replace(genericType.Value, $"{{{typeParam.Value}}}");
                 }
-                else if (docsParams.Any(x => x.Name == paramName))
+
+                if (ReservedKeywords.Any(x => x == backtickedApi))
                 {
-                    text = Regex.Replace(text, $"{backtickedParam}", $"<paramref name=\"{paramName}\" />");
+                    text = Regex.Replace(text, $"{backtickContent}", $"<see langword=\"{backtickedApi}\" />");
                 }
-                else if (docsTypeParams.Any(x => x.Name == paramName))
+                else if (docsParams.Any(x => x.Name == backtickedApi))
                 {
-                    text = Regex.Replace(text, $"{backtickedParam}", $"<typeparamref name=\"{paramName}\" />");
+                    text = Regex.Replace(text, $"{backtickContent}", $"<paramref name=\"{backtickedApi}\" />");
+                }
+                else if (docsTypeParams.Any(x => x.Name == backtickedApi))
+                {
+                    text = Regex.Replace(text, $"{backtickContent}", $"<typeparamref name=\"{backtickedApi}\" />");
+                }
+                else
+                {
+                    text = Regex.Replace(text, $"{backtickContent}", $"<see cref=\"{backtickedApi}\" />");
                 }
             }
 
@@ -531,11 +545,53 @@ namespace Libraries.RoslynTripleSlash
         private static string ReplaceDocId(Match m)
         {
             string docId = m.Groups["docId"].Value;
-            string overload = string.IsNullOrWhiteSpace(m.Groups["overload"].Value) ? "" : "O:";
+            string? prefix = m.Groups["prefix"].Value == "O:" ? "O:" : null;
             docId = ReplacePrimitives(docId);
-            docId = Regex.Replace(docId, @"%60", "`");
-            docId = Regex.Replace(docId, @"`\d", "{T}");
-            return overload + docId;
+            docId = System.Net.WebUtility.UrlDecode(docId);
+
+            // Strip '*' character from the tail end of DocId names
+            if (docId.EndsWith('*'))
+            {
+                prefix = "O:";
+                docId = docId[..^1];
+            }
+
+            return prefix + MapDocIdGenericsToCrefGenerics(docId);
+        }
+
+        private static string MapDocIdGenericsToCrefGenerics(string docId)
+        {
+            // Map DocId generic parameters to Xml Doc generic parameters
+            // need to support both single and double backtick syntax
+            const string GenericParameterPattern = @"`{1,2}([\d+])";
+            int genericParameterArity = 0;
+            return Regex.Replace(docId, GenericParameterPattern, MapDocIdGenericParameterToXmlDocGenericParameter);
+
+            string MapDocIdGenericParameterToXmlDocGenericParameter(Match match)
+            {
+                int index = int.Parse(match.Groups[1].Value);
+
+                if (genericParameterArity == 0)
+                {
+                    // this is the first match that declares the generic parameter arity of the method
+                    // e.g. GenericMethod``3 ---> GenericMethod{T1,T2,T3}(...);
+                    Debug.Assert(index > 0);
+                    genericParameterArity = index;
+                    return WrapInCurlyBrackets(string.Join(",", Enumerable.Range(0, index).Select(CreateGenericParameterName)));
+                }
+
+                // Subsequent matches are references to generic parameters in the method signature,
+                // e.g. GenericMethod{T1,T2,T3}(..., List{``1} parameter, ...); ---> List{T2} parameter
+                return CreateGenericParameterName(index);
+
+                // NB this naming scheme does not map to the exact generic parameter names,
+                // however this is still accepted by intellisense and backporters can rename
+                // manually with the help of tooling.
+                string CreateGenericParameterName(int index)
+                    => genericParameterArity == 1 ? "T" : $"T{index + 1}";
+
+                static string WrapInCurlyBrackets(string input) => $"{{{input}}}";
+            }
         }
 
         private static string CrefEvaluator(Match m)

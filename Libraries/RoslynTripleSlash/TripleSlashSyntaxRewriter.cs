@@ -20,7 +20,7 @@ namespace Libraries.RoslynTripleSlash
         /// <param name="paramName">My param description.</param>
         /// <remarks>My remarks.</remarks>
         public ...
-    
+
     translates to this syntax tree structure:
 
     PublicKeyword (SyntaxToken) -> The public keyword including its trivia.
