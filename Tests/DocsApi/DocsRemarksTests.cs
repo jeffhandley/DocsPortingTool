@@ -136,7 +136,7 @@ Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
         }
 
         [Fact]
-        public void ReplacesMarkdownXrefWithSeeCref()
+        public void ReplacesMarkdownXrefWithTags()
         {
             var xml = @"<remarks><format type=""text/markdown""><![CDATA[
                 ## Remarks
@@ -145,6 +145,43 @@ Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
 
             var expected = @"See <see cref=""Accessibility"" />.";
             var remarks = new DocsRemarks(XElement.Parse(xml));
+
+            Assert.Equal(expected, remarks.ParsedText);
+        }
+
+        [Fact]
+        public void ReplacesMarkdownLinksWithTags()
+        {
+            var xml = @"<remarks><format type=""text/markdown""><![CDATA[
+                See [the web](https://dot.net).
+            ]]></format></remarks>";
+
+            var expected = @"See <a href=""https://dot.net"">the web</a>.";
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+
+            Assert.Equal(expected, remarks.ParsedText);
+        }
+
+        [Theory]
+        [InlineData(@"Use `async` methods.", @"Use <see langword=""async"" /> methods.")]
+        [InlineData(@"The `T` generic type parameter must be a struct.", @"The <typeparamref name=""T"" /> generic type parameter must be a struct.")]
+        [InlineData(@"The `length` parameter cannot be negative.", @"The <paramref name=""length"" /> parameter cannot be negative.")]
+        [InlineData(@"See `System.ComponentModel.DataAnnotations.Validator`.", @"See <see cref=""System.ComponentModel.DataAnnotations.Validator"" />.")]
+        public void ReplacesMarkdownBacktickReferencesWithTags(string markdown, string expected)
+        {
+            var xml = $@"<remarks><format type=""text/markdown""><![CDATA[
+                {markdown}
+            ]]></format></remarks>";
+
+            var testDoc = new TestDocsApi();
+            var typeParamT = new DocsTypeParam(testDoc, XElement.Parse(@"<typeparam name=""T"">The struct.</typeparam>"));
+            var paramLength = new DocsParam(testDoc, XElement.Parse(@"<param name=""length"">The length.</param>"));
+
+            var remarks = new DocsRemarks(XElement.Parse(xml))
+            {
+                TypeParams = new[] { typeParamT },
+                Params = new[] { paramLength }
+            };
 
             Assert.Equal(expected, remarks.ParsedText);
         }

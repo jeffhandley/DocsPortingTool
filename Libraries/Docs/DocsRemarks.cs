@@ -10,7 +10,20 @@ namespace Libraries.Docs
         {
         }
 
-        public DocsExample? ExampleContent { get; private set; }
+        private DocsExample? _exampleContent;
+
+        public DocsExample? ExampleContent
+        {
+            get
+            {
+                EnsureParsed();
+                return _exampleContent;
+            }
+            set
+            {
+                _exampleContent = value;
+            }
+        }
 
         private static readonly Regex ExampleSectionPattern = new(@"^\s*##\s*Examples?\s*(?<examples>.*)", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
