@@ -18,7 +18,7 @@ namespace Libraries.Docs.Tests
         [Theory]
         [InlineData("C#", @"[System.Runtime.TargetedPatchingOptOut(""Performance critical to inline this type of method across NGen image boundaries"")]")]
         [InlineData("F#", @"[<System.Runtime.TargetedPatchingOptOut(""Performance critical to inline this type of method across NGen image boundaries"")>]")]
-        public void ExtractsAttributeNameByLanguage(string language, string? expected)
+        public void ExtractsAttributeNameByLanguage(string language, string expected)
         {
             var attribute = new DocsAttribute(XElement.Parse(@"
                 <Attribute FrameworkAlternate=""netframework-4.0"">

@@ -9,87 +9,45 @@ namespace Libraries.Docs
     public abstract class DocsTextElement
     {
         private readonly XElement Element;
-        private IEnumerable<XNode>? _parsedNodes;
-        private string? _parsedText;
 
         public string RawText { get; private init; }
 
         public IEnumerable<XNode> RawNodes { get; private init; }
 
-        public IEnumerable<XNode> ParsedNodes
-        {
-            get
-            {
-                if (_parsedNodes is null)
-                {
-                    // Clone the element for non-mutating parsing
-                    var cloned = XElement.Parse(Element.ToString()).Nodes();
+        public IEnumerable<XNode> ParsedNodes { get; private init; }
 
-                    // Parse each node and filter out nulls
-                    _parsedNodes = cloned.Select(ParseNode).OfType<XNode>();
-                }
-
-                return _parsedNodes;
-            }
-        }
-
-        public string ParsedText
-        {
-            get
-            {
-                if (_parsedText is null)
-                {
-                    IEnumerable<string> lines = JoinNodes(ParsedNodes).Split(Environment.NewLine);
-
-                    // Parse each line and filter out nulls
-                    lines = ParseTextLines(lines.Select(ParseTextLine));
-
-                    _parsedText = string.Join(Environment.NewLine, lines);
-                }
-
-                return _parsedText;
-            }
-        }
+        public string ParsedText { get; private init; }
 
         public DocsTextElement(XElement element)
         {
             Element = element;
-            RawNodes = Element.Nodes();
+            RawNodes = element.Nodes();
             RawText = JoinNodes(RawNodes);
+
+            // Clone the element for non-mutating parsing
+            var cloned = XElement.Parse(Element.ToString()).Nodes();
+
+            // Parse each node and filter out nulls, building a block of text
+            ParsedNodes = cloned.Select(ParseNode).OfType<XNode>();
+            var allNodeContent = JoinNodes(ParsedNodes);
+            
+            // Parse each line, filter out blank lines, and then trim each line of content
+            IEnumerable<string> lines = allNodeContent
+                .Split(Environment.NewLine)
+                .Select(ParseTextLine)
+                .Where(line => !string.IsNullOrWhiteSpace(line))
+                .Select(line => line!.Trim());
+
+            ParsedText = string.Join(Environment.NewLine, lines);
         }
 
         protected virtual XNode? ParseNode(XNode node) =>
             RewriteDocReferences(node);
 
-        protected virtual IEnumerable<string> ParseTextLines(IEnumerable<string?> lines) =>
-            lines.Where(line => !string.IsNullOrWhiteSpace(line)).OfType<string>().Select(line => line.Trim());
-
         protected virtual string? ParseTextLine(string line) => line;
 
         private static string JoinNodes(IEnumerable<XNode> nodes) =>
             string.Join("", nodes);
-
-        //public IEnumerable<DocsTextBlock> Parse(XNode node)
-        //{
-        //    DocsTextFormat format = DocsTextFormat.PlainText;
-        //    string text;
-
-        //    if (node is XElement element && element.Name == "format")
-        //    {
-        //        if (element.Attribute("type")?.Value == "text/markdown")
-        //        {
-        //            format = DocsTextFormat.Markdown;
-        //        }
-
-        //        text = (element.FirstNode is XCData cdata) ? cdata.Value : element.Value;
-        //    }
-        //    else
-        //    {
-        //        text = node.ToString();
-        //    }
-
-        //    return (format == DocsTextFormat.Markdown) ? ParseMarkdown(text) : ParseText(text);
-        //}
 
         protected static XNode RewriteDocReferences(XNode node)
         {

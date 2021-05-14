@@ -72,6 +72,131 @@ With Blank Lines.")]
             Assert.Equal(expected, remarks.ParsedText);
         }
 
+        [Theory]
+        [InlineData( // [!INCLUDE
+            @"<remarks><format type=""text/markdown""><![CDATA[ [!INCLUDE ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[ [!INCLUDE ]]></format>")]
+        [InlineData( // [!NOTE
+            @"<remarks><format type=""text/markdown""><![CDATA[ [!NOTE ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[ [!NOTE ]]></format>")]
+        [InlineData( // [!IMPORTANT
+            @"<remarks><format type=""text/markdown""><![CDATA[ [!IMPORTANT ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[ [!IMPORTANT ]]></format>")]
+        [InlineData( // [!TIP
+            @"<remarks><format type=""text/markdown""><![CDATA[ [!TIP ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[ [!TIP ]]></format>")]
+        [InlineData( // [!code-cpp
+            @"<remarks><format type=""text/markdown""><![CDATA[ [!code-cpp ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[ [!code-cpp ]]></format>")]
+        [InlineData( // [!code-csharp
+            @"<remarks><format type=""text/markdown""><![CDATA[ [!code-csharp ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[ [!code-csharp ]]></format>")]
+        [InlineData( // [!code-vb
+            @"<remarks><format type=""text/markdown""><![CDATA[ [!code-vb ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[ [!code-vb ]]></format>")]
+        public void RetainsMarkdownFormatForUnparseableContent(string xml, string expected)
+        {
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+            Assert.Equal(expected, remarks.ParsedText);
+        }
+
+        [Theory]
+        [InlineData( // [!INCLUDE -- Without CDATA
+            @"<remarks><format type=""text/markdown"">Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]</format></remarks>",
+            @"<format type=""text/markdown"">Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]</format>")]
+        [InlineData( // [!INCLUDE -- With CDATA
+            @"<remarks><format type=""text/markdown""><![CDATA[Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]]]></format>")]
+        [InlineData( // [!INCLUDE -- With CDATA and newlines
+            @"<remarks><format type=""text/markdown""><![CDATA[
+                Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
+            ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[
+Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
+]]></format>")]
+        public void RetainsMarkdownStructure(string xml, string expected)
+        {
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+            Assert.Equal(expected, remarks.ParsedText);
+        }
+
+        [Theory]
+        [InlineData(@"
+            <remarks><format type=""text/markdown"">
+                ## EXAMPLE
+                EXAMPLE CONTENT
+            </format></remarks>")]
+        [InlineData(@"
+            <remarks><format type=""text/markdown"">
+                ##EXAMPLES
+                EXAMPLE CONTENT
+            </format></remarks>")]
+        public void RemovesExamplesFromRemarks(string xml)
+        {
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+            Assert.DoesNotContain("EXAMPLE CONTENT", remarks.ParsedText);
+        }
+
+        [Theory]
+        [InlineData(@"
+            <remarks><format type=""text/markdown"">
+                ## EXAMPLE
+                EXAMPLE CONTENT
+            </format></remarks>",
+            @"")]
+        [InlineData(@"
+            <remarks><format type=""text/markdown"">
+                ##EXAMPLES
+                EXAMPLE CONTENT
+            </format></remarks>",
+            @"")]
+        [InlineData(@"
+            <remarks><format type=""text/markdown"">
+                ## REMARKS
+
+                REMARK CONTENT
+
+                ##EXAMPLES
+
+                EXAMPLE CONTENT
+            </format></remarks>",
+            @"REMARK CONTENT")]
+        public void TrimsRemarksAfterRemovingExamples(string xml, string expected)
+        {
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+            Assert.Equal(expected, remarks.ParsedText);
+        }
+
+        [Theory]
+        [InlineData(@"
+            <remarks><format type=""text/markdown"">
+                ## EXAMPLE
+                EXAMPLE CONTENT
+            </format></remarks>",
+            @"EXAMPLE CONTENT")]
+        [InlineData(@"
+            <remarks><format type=""text/markdown"">
+                ##EXAMPLES
+                EXAMPLE CONTENT
+            </format></remarks>",
+            @"EXAMPLE CONTENT")]
+        [InlineData(@"
+            <remarks><format type=""text/markdown"">
+                ## REMARKS
+
+                REMARK CONTENT
+
+                ##EXAMPLES
+
+                EXAMPLE CONTENT
+            </format></remarks>",
+            @"EXAMPLE CONTENT")]
+        public void GetsExampleContent(string xml, string expected)
+        {
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+            Assert.Equal(expected, remarks.ExampleContent?.ParsedText);
+        }
+
         [Fact]
         public void GetsNodes()
         {

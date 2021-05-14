@@ -65,6 +65,16 @@ With Blank Lines.")]
         }
 
         [Fact]
+        public void AllowsInlineIncludesInParsedText()
+        {
+            var xml = @"<summary>Converts narrow (single-byte) characters in the string to wide (double-byte) characters. Applies to Asian locales. This member is equivalent to the Visual Basic constant <see langword=""vbWide"" />. [!INCLUDE[vbstrconv-wide](~/includes/vbstrconv-wide-md.md)]</summary>";
+            var expected = @"Converts narrow (single-byte) characters in the string to wide (double-byte) characters. Applies to Asian locales. This member is equivalent to the Visual Basic constant <see langword=""vbWide"" />. [!INCLUDE[vbstrconv-wide](~/includes/vbstrconv-wide-md.md)]";
+
+            var summary = new DocsSummary(XElement.Parse(xml));
+            Assert.Equal(expected, summary.ParsedText);
+        }
+
+        [Fact]
         public void GetsNodes()
         {
             var xml = @"<summary>Summary referencing a <see cref=""T:System.Type"" />.</summary>";
