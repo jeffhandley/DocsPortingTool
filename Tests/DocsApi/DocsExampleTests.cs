@@ -179,7 +179,7 @@ Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
                 new XText(".")
             };
 
-            Assert.Equal(expected.Select(x => x.ToString()), example.ParsedNodes.ToArray().Select(x => x.ToString()));
+            Assert.Equal(expected.Select(x => x.ToString()), example.ParsedNodes.ToArray());
         }
     }
 }

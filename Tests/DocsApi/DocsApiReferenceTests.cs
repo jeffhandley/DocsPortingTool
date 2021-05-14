@@ -32,10 +32,23 @@ namespace Libraries.Docs.Tests
         [InlineData("T:System.Int32", "int")]
         [InlineData("M:System.Int32.ToString()", "int.ToString()")]
         [InlineData("O:System.Int32.ToString(System.String)", "int.ToString(string)")]
-        public void RemovesPrefix(string apiReference, string expected)
+        public void RemovesPrefixFromApi(string apiReference, string expected)
         {
             var reference = new DocsApiReference(apiReference);
             Assert.Equal(expected, reference.Api);
+        }
+
+        [Theory]
+        [InlineData("System.Int32", "int")]
+        [InlineData("System.Int32.ToString()", "int.ToString()")]
+        [InlineData("System.Int32.ToString(System.String)", "int.ToString(string)")]
+        [InlineData("T:System.Int32", "T:int")]
+        [InlineData("M:System.Int32.ToString()", "M:int.ToString()")]
+        [InlineData("O:System.Int32.ToString(System.String)", "O:int.ToString(string)")]
+        public void OverridesToStringWithPrefixAndApi(string apiReference, string expected)
+        {
+            var reference = new DocsApiReference(apiReference);
+            Assert.Equal(expected, reference.ToString());
         }
 
         [Theory]
@@ -58,6 +71,17 @@ namespace Libraries.Docs.Tests
         {
             var reference = new DocsApiReference(apiReference);
             Assert.Equal(expected, reference.IsOverload);
+        }
+
+        [Theory]
+        [InlineData(@"Accessibility: <xref:Accessibility>", @"Accessibility: <see cref=""Accessibility"" />")]
+        [InlineData(@"SyndicationCategory: <xref:System.ServiceModel.Syndication.SyndicationCategory>", @"SyndicationCategory: <see cref=""System.ServiceModel.Syndication.SyndicationCategory"" />")]
+        [InlineData(@"Label: <xref:System.ServiceModel.Syndication.SyndicationCategory.Label*>", @"Label: <see cref=""System.ServiceModel.Syndication.SyndicationCategory.Label"" />")]
+        [InlineData(@"==: <xref:System.Windows.Media.Matrix.op_Equality*?displayProperty=nameWithType>", @"==: <see cref=""System.Windows.Media.Matrix.op_Equality"" />")]
+        public void ReplacesMarkdownXrefsWithSeeCrefs(string markdown, string expected)
+        {
+            var replaced = DocsApiReference.ReplaceMarkdownXrefWithSeeCref(markdown);
+            Assert.Equal(expected, replaced);
         }
     }
 }

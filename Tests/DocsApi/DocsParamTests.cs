@@ -22,8 +22,8 @@ namespace Libraries.Docs.Tests
             @"<param name=""image"">The <see cref=""T:System.Drawing.Image"" /> object to animate.</param>",
             @"The <see cref=""T:System.Drawing.Image"" /> object to animate.")]
         [InlineData(
-            @"<param name=""item"">The object to be added to the end of the <see cref=""T: System.Collections.Generic.List`1"" />. The value can be <see langword=""null"" /> for reference types.</param>",
-            @"The object to be added to the end of the <see cref=""T: System.Collections.Generic.List`1"" />. The value can be <see langword=""null"" /> for reference types.")]
+            @"<param name=""item"">The object to be added to the end of the <see cref=""T:System.Collections.Generic.List`1"" />. The value can be <see langword=""null"" /> for reference types.</param>",
+            @"The object to be added to the end of the <see cref=""T:System.Collections.Generic.List`1"" />. The value can be <see langword=""null"" /> for reference types.")]
         public void ExtractsValueAsPlainText(string xml, string expected)
         {
             var parent = new TestDocsApi();

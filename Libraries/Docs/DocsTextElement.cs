@@ -14,7 +14,7 @@ namespace Libraries.Docs
 
         public IEnumerable<XNode> RawNodes { get; private init; }
 
-        public IEnumerable<XNode> ParsedNodes { get; private init; }
+        public IEnumerable<string> ParsedNodes { get; private init; }
 
         public string ParsedText { get; private init; }
 
@@ -22,46 +22,32 @@ namespace Libraries.Docs
         {
             Element = element;
             RawNodes = element.Nodes();
-            RawText = JoinNodes(RawNodes);
+            RawText = string.Join("", RawNodes);
 
             // Clone the element for non-mutating parsing
             var cloned = XElement.Parse(Element.ToString()).Nodes();
 
             // Parse each node and filter out nulls, building a block of text
-            ParsedNodes = cloned.Select(ParseNode).OfType<XNode>();
-            var allNodeContent = JoinNodes(ParsedNodes);
-            
-            // Parse each line, filter out blank lines, and then trim each line of content
-            IEnumerable<string> lines = allNodeContent
-                .Split(Environment.NewLine)
-                .Select(ParseTextLine)
-                .Where(line => !string.IsNullOrWhiteSpace(line))
-                .Select(line => line!.Trim());
+            ParsedNodes = cloned.Select(ParseNode).OfType<string>();
+            var allNodeContent = string.Join("", ParsedNodes);
 
+            var lines = allNodeContent.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             ParsedText = string.Join(Environment.NewLine, lines);
         }
 
-        protected virtual XNode? ParseNode(XNode node) =>
-            RewriteDocReferences(node);
-
-        protected virtual string? ParseTextLine(string line) => line;
-
-        private static string JoinNodes(IEnumerable<XNode> nodes) =>
-            string.Join("", nodes);
+        protected virtual string? ParseNode(XNode node) =>
+            RewriteDocReferences(node).ToString();
 
         protected static XNode RewriteDocReferences(XNode node)
         {
-            if (node is XElement element)
+            if (node is XElement element && element.Name == "see")
             {
-                if (element.Name == "see")
-                {
-                    var cref = element.Attribute("cref");
+                var cref = element.Attribute("cref");
 
-                    if (cref is not null)
-                    {
-                        var apiReference = new DocsApiReference(cref.Value);
-                        cref.SetValue(apiReference.Api);
-                    }
+                if (cref is not null)
+                {
+                    var apiReference = new DocsApiReference(cref.Value);
+                    cref.SetValue(apiReference.Api);
                 }
             }
 

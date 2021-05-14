@@ -20,7 +20,7 @@ namespace Libraries.Docs
             CodeIncludePattern.ToString()
         }));
 
-        protected override XNode? ParseNode(XNode node)
+        protected override string? ParseNode(XNode node)
         {
             if (node is XElement element && element.Name == "format" && element.Attribute("type")?.Value == "text/markdown")
             {
@@ -28,11 +28,18 @@ namespace Libraries.Docs
 
                 if (TryParseMarkdown(markdown, out var parsedText))
                 {
-                    node = new XText(parsedText);
+                    return parsedText;
                 }
             }
 
             return base.ParseNode(node);
+        }
+
+        protected string RemoveMarkdownHeading(string markdown, string heading)
+        {
+            Regex HeadingPattern = new(@$"^\s*##\s*{heading}\s*$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+
+            return HeadingPattern.Replace(markdown, "", 1);
         }
 
         protected virtual bool TryParseMarkdown(string markdown, [NotNullWhen(true)] out string? parsed)
@@ -43,8 +50,9 @@ namespace Libraries.Docs
                 return false;
             }
 
-            parsed = markdown;
+            parsed = DocsApiReference.ReplaceMarkdownXrefWithSeeCref(markdown);
             return true;
         }
     }
 }
+

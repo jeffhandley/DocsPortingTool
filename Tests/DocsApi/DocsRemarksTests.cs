@@ -135,6 +135,20 @@ Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
             Assert.Equal(expected, remarks.ParsedText);
         }
 
+        [Fact]
+        public void ReplacesMarkdownXrefWithSeeCref()
+        {
+            var xml = @"<remarks><format type=""text/markdown""><![CDATA[
+                ## Remarks
+                See <xref:Accessibility>.
+            ]]></format></remarks>";
+
+            var expected = @"See <see cref=""Accessibility"" />.";
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+
+            Assert.Equal(expected, remarks.ParsedText);
+        }
+
         [Theory]
         [InlineData(@"
             <remarks><format type=""text/markdown"">
@@ -271,7 +285,7 @@ Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
                 new XText(".")
             };
 
-            Assert.Equal(expected.Select(x => x.ToString()), remarks.ParsedNodes.ToArray().Select(x => x.ToString()));
+            Assert.Equal(expected.Select(x => x.ToString()), remarks.ParsedNodes.ToArray());
         }
     }
 }

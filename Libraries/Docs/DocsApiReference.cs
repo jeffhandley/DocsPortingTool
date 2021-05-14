@@ -17,7 +17,8 @@ namespace Libraries.Docs
         // Generic parameters need to support both single and double backtick conventions
         private const string GenericParameterPattern = @"`{1,2}(?<arity>\d+)";
         private const string ApiChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;`]";
-        private const string ApiReferencePattern = @"(?<prefix>[A-Za-z]{1}:)?(?<api>(" + ApiChars + @")+)?(?<extraVars>\?(" + ApiChars + @")+=(" + ApiChars + @")+)?";
+        private const string ApiReferencePattern = @"((?<prefix>[A-Za-z]):)?(?<api>(" + ApiChars + @")+)?(?<extraVars>\?(" + ApiChars + @")+=(" + ApiChars + @")+)?";
+        private static readonly Regex XrefPattern = new("<xref:(?<api>" + ApiReferencePattern + ")\\s*>");
 
         public DocsApiReference(string apiReference)
         {
@@ -43,6 +44,16 @@ namespace Libraries.Docs
 
             Api = ReplacePrimitivesWithShorthands(Api);
             Api = ParseGenericTypes(Api);
+        }
+
+        public override string ToString()
+        {
+            if (Prefix is not null)
+            {
+                return $"{Prefix}:{Api}";
+            }
+
+            return Api;
         }
 
         private static readonly Dictionary<string, string> PrimitiveTypes = new()
@@ -104,6 +115,15 @@ namespace Libraries.Docs
 
                 static string WrapInCurlyBrackets(string input) => $"{{{input}}}";
             }
+        }
+
+        public static string ReplaceMarkdownXrefWithSeeCref(string markdown)
+        {
+            return XrefPattern.Replace(markdown, match =>
+            {
+                var api = new DocsApiReference(match.Groups["api"].Value);
+                return @$"<see cref=""{api}"" />";
+            });
         }
     }
 }

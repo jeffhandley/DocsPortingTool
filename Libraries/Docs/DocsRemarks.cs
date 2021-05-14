@@ -12,17 +12,14 @@ namespace Libraries.Docs
 
         public DocsExample? ExampleContent { get; private set; }
 
-        private static readonly Regex RemarksHeaderPattern = new(@"^\s*##\s*Remarks\s*$", RegexOptions.IgnoreCase);
         private static readonly Regex ExampleSectionPattern = new(@"^\s*##\s*Examples?\s*(?<examples>.*)", RegexOptions.IgnoreCase | RegexOptions.Multiline);
-
-        protected override string? ParseTextLine(string line) =>
-            RemarksHeaderPattern.IsMatch(line) ? null : line;
 
         protected override bool TryParseMarkdown(string markdown, [NotNullWhen(true)] out string? parsed)
         {
-            var remarks = ExtractExamples(markdown);
+            markdown = RemoveMarkdownHeading(markdown, "Remarks");
+            markdown = ExtractExamples(markdown);
 
-            return base.TryParseMarkdown(remarks, out parsed);
+            return base.TryParseMarkdown(markdown, out parsed);
         }
         
         private string ExtractExamples(string remarks)

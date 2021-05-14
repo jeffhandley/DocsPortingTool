@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace Libraries.Docs
@@ -9,9 +10,11 @@ namespace Libraries.Docs
         {
         }
 
-        private static readonly Regex ExampleHeaderPattern = new(@"^\s*##\s*Examples?\s*$", RegexOptions.IgnoreCase);
+        protected override bool TryParseMarkdown(string markdown, [NotNullWhen(true)] out string? parsed)
+        {
+            parsed = RemoveMarkdownHeading(markdown, "Examples?");
 
-        protected override string? ParseTextLine(string line) =>
-            ExampleHeaderPattern.IsMatch(line) ? null : line;
+            return base.TryParseMarkdown(parsed, out parsed);
+        }
     }
 }
