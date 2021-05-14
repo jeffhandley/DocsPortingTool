@@ -12,6 +12,7 @@ namespace Libraries.Docs
         {
         }
 
+        private static readonly Regex ExampleHeaderPattern = new(@"^\s*##\s*Examples?\s*$", RegexOptions.IgnoreCase);
         private static readonly Regex IncludeFilePattern = new(@"\[!INCLUDE");
         private static readonly Regex CalloutPattern = new(@"\[!NOTE|\[!IMPORTANT|\[!TIP");
         private static readonly Regex CodeIncludePattern = new(@"\[!code-cpp|\[!code-csharp|\[!code-vb");
@@ -21,6 +22,9 @@ namespace Libraries.Docs
             CalloutPattern.ToString(),
             CodeIncludePattern.ToString()
         }));
+
+        protected override string? ParseTextLine(string line) =>
+            ExampleHeaderPattern.IsMatch(line) ? null : line;
 
         protected override XNode? ParseNode(XNode node)
         {

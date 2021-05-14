@@ -58,6 +58,13 @@ Remarks
 Referencing
 <see cref=""int"" />
 With Blank Lines.")]
+        public void GetsParsedText(string xml, string expected)
+        {
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+            Assert.Equal(expected, remarks.ParsedText);
+        }
+
+        [Theory]
         [InlineData(
             @"<remarks>
                 <format type=""text/markdown""><![CDATA[
@@ -66,7 +73,15 @@ With Blank Lines.")]
                 ]]></format>
             </remarks>",
             @"Markdown remarks")]
-        public void GetsParsedText(string xml, string expected)
+        [InlineData(
+            @"<remarks>
+                <format type=""text/markdown""><![CDATA[
+                ##Remarks
+                Markdown remarks
+                ]]></format>
+            </remarks>",
+            @"Markdown remarks")]
+        public void RemovesRemarksHeader(string xml, string expected)
         {
             var remarks = new DocsRemarks(XElement.Parse(xml));
             Assert.Equal(expected, remarks.ParsedText);
