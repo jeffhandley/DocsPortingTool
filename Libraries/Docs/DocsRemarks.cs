@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using System.Xml;
 using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    public class DocsRemarks : DocsTextElement
+    public class DocsRemarks : DocsMarkdownElement
     {
         public DocsRemarks(XElement xeRemarks) : base(xeRemarks)
         {
@@ -17,36 +15,16 @@ namespace Libraries.Docs
         private static readonly Regex RemarksHeaderPattern = new(@"^\s*##\s*Remarks\s*$", RegexOptions.IgnoreCase);
         private static readonly Regex ExampleSectionPattern = new(@"^\s*##\s*Examples?\s*(?<examples>.*)", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-        private static readonly Regex IncludeFilePattern = new(@"\[!INCLUDE");
-        private static readonly Regex CalloutPattern = new(@"\[!NOTE|\[!IMPORTANT|\[!TIP");
-        private static readonly Regex CodeIncludePattern = new(@"\[!code-cpp|\[!code-csharp|\[!code-vb");
-
-        private static readonly Regex UnparseableMarkdown = new(string.Join('|', new[] {
-            IncludeFilePattern.ToString(),
-            CalloutPattern.ToString(),
-            CodeIncludePattern.ToString()
-        }));
-
         protected override string? ParseTextLine(string line) =>
             RemarksHeaderPattern.IsMatch(line) ? null : line;
 
-        protected override XNode? ParseNode(XNode node)
+        protected override bool TryParseMarkdown(string markdown, [NotNullWhen(true)] out string? parsed)
         {
-            if (node is XElement element && element.Name == "format" && element.Attribute("type")?.Value == "text/markdown")
-            {
-                var formattedText = (element.FirstNode is XCData cdata) ? cdata.Value : element.Value;
+            var remarks = ExtractExamples(markdown);
 
-                formattedText = ExtractExamples(formattedText);
-
-                if (!UnparseableMarkdown.IsMatch(formattedText))
-                {
-                    node = new XText(formattedText);
-                }
-            }
-
-            return base.ParseNode(node);
+            return base.TryParseMarkdown(remarks, out parsed);
         }
-
+        
         private string ExtractExamples(string remarks)
         {
             var match = ExampleSectionPattern.Match(remarks);
