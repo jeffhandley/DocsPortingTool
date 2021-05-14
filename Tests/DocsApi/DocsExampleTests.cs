@@ -121,6 +121,27 @@ Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
         }
 
         [Fact]
+        public void ReplacesMarkdownCodeSnippetsWithTags()
+        {
+            var xml = @"<example><format type=""text/markdown""><![CDATA[
+Here's an example:
+
+```csharp
+Console.WriteLine(""Hello World!"");
+```
+
+            ]]></format></example>";
+
+            var expected = @"Here's an example:
+<code class=""lang-csharp"">
+Console.WriteLine(""Hello World!"");
+</code>";
+
+            var example = new DocsExample(XElement.Parse(xml));
+            Assert.Equal(expected, example.ParsedText);
+        }
+
+        [Fact]
         public void GetsNodes()
         {
             var xml = @"<example>Example referencing a <see cref=""T:System.Type"" />.</example>";

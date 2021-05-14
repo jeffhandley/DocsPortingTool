@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -44,9 +45,11 @@ namespace Libraries.Docs
                 var cloned = XElement.Parse(Element.ToString()).Nodes();
 
                 // Parse each node and filter out nulls, building a block of text
-                _parsedNodes = cloned.Select(ParseNode).OfType<string>();
-
+                _parsedNodes = cloned.Select(ParseNode).OfType<string>().ToArray();
                 var allNodeContent = string.Join("", _parsedNodes);
+
+                // Normalize line endings, trim lines, remove empty lines, and join back into 1 string
+                allNodeContent = Regex.Replace(allNodeContent, "\r?\n", Environment.NewLine);
                 var lines = allNodeContent.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 _parsedText = string.Join(Environment.NewLine, lines);
             }
