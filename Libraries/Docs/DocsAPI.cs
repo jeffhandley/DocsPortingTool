@@ -9,6 +9,8 @@ namespace Libraries.Docs
     public abstract class DocsAPI : IDocsAPI
     {
         private string? _docIdEscaped = null;
+        private DocsSummary? _summary;
+        private DocsRemarks? _remarks;
         private List<DocsParam>? _params;
         private List<DocsParameter>? _parameters;
         private List<DocsTypeParameter>? _typeParameters;
@@ -183,7 +185,52 @@ namespace Libraries.Docs
 
         public abstract string Summary { get; set; }
 
+        public DocsSummary SummaryElement
+        {
+            get
+            {
+                if (_summary == null)
+                {
+                    XElement? xe = Docs?.Element("summary");
+
+                    if (xe != null)
+                    {
+                        _summary = new(xe);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"There was no <summary> element. Doc ID: {DocId}");
+                    }
+                }
+
+                return _summary;
+            }
+        }
+
         public abstract string Remarks { get; set; }
+
+        public DocsRemarks RemarksElement
+        {
+            get
+            {
+                if (_remarks == null)
+                {
+                    XElement? xe = Docs?.Element("remarks");
+
+                    if (xe != null)
+                    {
+                        _remarks = new(xe);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"There was no <remarks> element. Doc ID: {DocId}");
+                    }
+                }
+
+                return _remarks;
+            }
+        }
+
 
         public List<DocsAssemblyInfo> AssemblyInfos
         {

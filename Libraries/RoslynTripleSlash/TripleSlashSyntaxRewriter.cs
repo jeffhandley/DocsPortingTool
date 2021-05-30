@@ -182,7 +182,7 @@ namespace Libraries.RoslynTripleSlash
 
             SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
 
-            SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
+            //SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
             SyntaxTriviaList value = XmlDocComments.GetValue(member, leadingWhitespace);
             SyntaxTriviaList exceptions = XmlDocComments.GetExceptions(member.Exceptions, leadingWhitespace);
             SyntaxTriviaList remarks = XmlDocComments.GetRemarks(member, leadingWhitespace);
@@ -190,7 +190,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = XmlDocComments.GetRelateds(member.Relateds, leadingWhitespace);
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, value, exceptions, remarks, seealsos, altmembers, relateds);
+            return GetNodeWithTrivia(leadingWhitespace, node, /*summary,*/ value, exceptions, remarks, seealsos, altmembers, relateds);
         }
 
         public override SyntaxNode? VisitRecordDeclaration(RecordDeclarationSyntax node)
@@ -246,16 +246,16 @@ namespace Libraries.RoslynTripleSlash
                 return node;
             }
 
-            SyntaxTriviaList summary = XmlDocComments.GetSummary(type, leadingWhitespace);
-            SyntaxTriviaList typeParameters = XmlDocComments.GetTypeParameters(type, leadingWhitespace);
-            SyntaxTriviaList parameters = XmlDocComments.GetParameters(type, leadingWhitespace);
-            SyntaxTriviaList remarks = XmlDocComments.GetRemarks(type, leadingWhitespace);
-            SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(type.SeeAlsoCrefs, leadingWhitespace);
-            SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(type.AltMembers, leadingWhitespace);
-            SyntaxTriviaList relateds = XmlDocComments.GetRelateds(type.Relateds, leadingWhitespace);
+            SyntaxTriviaList summary = new(XmlDocComments.GetSummary(type));
+            SyntaxTriviaList typeParams = XmlDocComments.GetTypeParameters(type);
+            SyntaxTriviaList parameters = XmlDocComments.GetParameters(type);
+            SyntaxTriviaList remarks = XmlDocComments.GetRemarks(type);
+            //SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(type.SeeAlsoCrefs, leadingWhitespace);
+            //SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(type.AltMembers, leadingWhitespace);
+            //SyntaxTriviaList relateds = XmlDocComments.GetRelateds(type.Relateds, leadingWhitespace);
 
-
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, typeParameters, parameters, remarks, seealsos, altmembers, relateds);
+            var nodeWithDocs = LeadingTriviaRewriter.ApplyXmlComments(node, summary, typeParams, parameters, remarks);
+            return nodeWithDocs;
         }
 
         private SyntaxNode? VisitBaseMethodDeclaration(BaseMethodDeclarationSyntax node)
@@ -269,7 +269,7 @@ namespace Libraries.RoslynTripleSlash
 
             SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
 
-            SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
+            //SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
             SyntaxTriviaList typeParameters = XmlDocComments.GetTypeParameters(member, leadingWhitespace);
             SyntaxTriviaList parameters = XmlDocComments.GetParameters(member, leadingWhitespace);
             SyntaxTriviaList returns = XmlDocComments.GetReturns(member, leadingWhitespace);
@@ -279,7 +279,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = XmlDocComments.GetRelateds(member.Relateds, leadingWhitespace);
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, typeParameters, parameters, returns, exceptions, remarks, seealsos, altmembers, relateds);
+            return GetNodeWithTrivia(leadingWhitespace, node, /*summary,*/ typeParameters, parameters, returns, exceptions, remarks, seealsos, altmembers, relateds);
         }
 
         private SyntaxNode? VisitMemberDeclaration(MemberDeclarationSyntax node)
@@ -291,14 +291,14 @@ namespace Libraries.RoslynTripleSlash
 
             SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
 
-            SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
+            //SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
             SyntaxTriviaList exceptions = XmlDocComments.GetExceptions(member.Exceptions, leadingWhitespace);
             SyntaxTriviaList remarks = XmlDocComments.GetRemarks(member, leadingWhitespace);
             SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = XmlDocComments.GetRelateds(member.Relateds, leadingWhitespace);
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, exceptions, remarks, seealsos, altmembers, relateds);
+            return GetNodeWithTrivia(leadingWhitespace, node, /*summary,*/ exceptions, remarks, seealsos, altmembers, relateds);
         }
 
         private SyntaxNode? VisitVariableDeclaration(BaseFieldDeclarationSyntax node)
@@ -316,13 +316,13 @@ namespace Libraries.RoslynTripleSlash
 
                 SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
 
-                SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
+                //SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
                 SyntaxTriviaList remarks = XmlDocComments.GetRemarks(member, leadingWhitespace);
                 SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
                 SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(member.AltMembers, leadingWhitespace);
                 SyntaxTriviaList relateds = XmlDocComments.GetRelateds(member.Relateds, leadingWhitespace);
 
-                return GetNodeWithTrivia(leadingWhitespace, node, summary, remarks, seealsos, altmembers, relateds);
+                return GetNodeWithTrivia(leadingWhitespace, node, /*summary,*/ remarks, seealsos, altmembers, relateds);
             }
 
             return node;

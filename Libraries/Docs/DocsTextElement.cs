@@ -12,6 +12,7 @@ namespace Libraries.Docs
     {
         private readonly XElement Element;
         private IEnumerable<string>? _parsedNodes;
+        private string[]? _parsedLines;
         private string? _parsedText;
 
         public string RawText { get; private init; }
@@ -36,6 +37,15 @@ namespace Libraries.Docs
             }
         }
 
+        public string[] ParsedTextLines
+        {
+            get
+            {
+                EnsureParsed();
+                return _parsedLines;
+            }
+        }
+
         [MemberNotNull(nameof(_parsedNodes), nameof(_parsedText))]
         protected void EnsureParsed()
         {
@@ -50,8 +60,8 @@ namespace Libraries.Docs
 
                 // Normalize line endings, trim lines, remove empty lines, and join back into 1 string
                 allNodeContent = Regex.Replace(allNodeContent, "\r?\n", Environment.NewLine);
-                var lines = allNodeContent.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                _parsedText = string.Join(Environment.NewLine, lines);
+                _parsedLines = allNodeContent.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                _parsedText = string.Join(Environment.NewLine, _parsedLines);
             }
         }
 
