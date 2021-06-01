@@ -180,17 +180,16 @@ namespace Libraries.RoslynTripleSlash
                 return node;
             }
 
-            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+            List<XmlNodeSyntax?> xmlComments = new();
+            xmlComments.Add(XmlDocComments.GetSummary(member));
+            xmlComments.Add(XmlDocComments.GetValue(member));
+            xmlComments.AddRange(XmlDocComments.GetExceptions(member.Exceptions));
+            xmlComments.Add(XmlDocComments.GetRemarks(member));
+            xmlComments.AddRange(XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs));
+            xmlComments.AddRange(XmlDocComments.GetAltMembers(member.AltMembers));
+            xmlComments.AddRange(XmlDocComments.GetRelateds(member.Relateds));
 
-            //SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
-            SyntaxTriviaList value = XmlDocComments.GetValue(member, leadingWhitespace);
-            SyntaxTriviaList exceptions = XmlDocComments.GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = XmlDocComments.GetRemarks(member, leadingWhitespace);
-            SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
-            SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(member.AltMembers, leadingWhitespace);
-            SyntaxTriviaList relateds = XmlDocComments.GetRelateds(member.Relateds, leadingWhitespace);
-
-            return GetNodeWithTrivia(leadingWhitespace, node, /*summary,*/ value, exceptions, remarks, seealsos, altmembers, relateds);
+            return LeadingTriviaRewriter.ApplyXmlComments(node, xmlComments.Where(c => c is not null)!);
         }
 
         public override SyntaxNode? VisitRecordDeclaration(RecordDeclarationSyntax node)
@@ -239,23 +238,21 @@ namespace Libraries.RoslynTripleSlash
                 return node;
             }
 
-            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
-
             if (!TryGetType(symbol, out DocsType? type))
             {
                 return node;
             }
 
-            SyntaxTriviaList summary = new(XmlDocComments.GetSummary(type));
-            SyntaxTriviaList typeParams = XmlDocComments.GetTypeParameters(type);
-            SyntaxTriviaList parameters = XmlDocComments.GetParameters(type);
-            SyntaxTriviaList remarks = XmlDocComments.GetRemarks(type);
-            //SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(type.SeeAlsoCrefs, leadingWhitespace);
-            //SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(type.AltMembers, leadingWhitespace);
-            //SyntaxTriviaList relateds = XmlDocComments.GetRelateds(type.Relateds, leadingWhitespace);
+            List<XmlNodeSyntax?> xmlComments = new();
+            xmlComments.Add(XmlDocComments.GetSummary(type));
+            xmlComments.AddRange(XmlDocComments.GetTypeParameters(type));
+            xmlComments.AddRange(XmlDocComments.GetParameters(type));
+            xmlComments.Add(XmlDocComments.GetRemarks(type));
+            xmlComments.AddRange(XmlDocComments.GetSeeAlsos(type.SeeAlsoCrefs));
+            xmlComments.AddRange(XmlDocComments.GetAltMembers(type.AltMembers));
+            xmlComments.AddRange(XmlDocComments.GetRelateds(type.Relateds));
 
-            var nodeWithDocs = LeadingTriviaRewriter.ApplyXmlComments(node, summary, typeParams, parameters, remarks);
-            return nodeWithDocs;
+            return LeadingTriviaRewriter.ApplyXmlComments(node, xmlComments.Where(c => c is not null)!);
         }
 
         private SyntaxNode? VisitBaseMethodDeclaration(BaseMethodDeclarationSyntax node)
@@ -267,19 +264,18 @@ namespace Libraries.RoslynTripleSlash
                 return node;
             }
 
-            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+            List<XmlNodeSyntax?> xmlComments = new();
+            xmlComments.Add(XmlDocComments.GetSummary(member));
+            xmlComments.AddRange(XmlDocComments.GetTypeParameters(member));
+            xmlComments.AddRange(XmlDocComments.GetParameters(member));
+            xmlComments.Add(XmlDocComments.GetReturns(member));
+            xmlComments.AddRange(XmlDocComments.GetExceptions(member.Exceptions));
+            xmlComments.Add(XmlDocComments.GetRemarks(member));
+            xmlComments.AddRange(XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs));
+            xmlComments.AddRange(XmlDocComments.GetAltMembers(member.AltMembers));
+            xmlComments.AddRange(XmlDocComments.GetRelateds(member.Relateds));
 
-            //SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
-            SyntaxTriviaList typeParameters = XmlDocComments.GetTypeParameters(member, leadingWhitespace);
-            SyntaxTriviaList parameters = XmlDocComments.GetParameters(member, leadingWhitespace);
-            SyntaxTriviaList returns = XmlDocComments.GetReturns(member, leadingWhitespace);
-            SyntaxTriviaList exceptions = XmlDocComments.GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = XmlDocComments.GetRemarks(member, leadingWhitespace);
-            SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
-            SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(member.AltMembers, leadingWhitespace);
-            SyntaxTriviaList relateds = XmlDocComments.GetRelateds(member.Relateds, leadingWhitespace);
-
-            return GetNodeWithTrivia(leadingWhitespace, node, /*summary,*/ typeParameters, parameters, returns, exceptions, remarks, seealsos, altmembers, relateds);
+            return LeadingTriviaRewriter.ApplyXmlComments(node, xmlComments.Where(c => c is not null)!);
         }
 
         private SyntaxNode? VisitMemberDeclaration(MemberDeclarationSyntax node)
@@ -289,16 +285,15 @@ namespace Libraries.RoslynTripleSlash
                 return node;
             }
 
-            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+            List<XmlNodeSyntax?> xmlComments = new();
+            xmlComments.Add(XmlDocComments.GetSummary(member));
+            xmlComments.AddRange(XmlDocComments.GetExceptions(member.Exceptions));
+            xmlComments.Add(XmlDocComments.GetRemarks(member));
+            xmlComments.AddRange(XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs));
+            xmlComments.AddRange(XmlDocComments.GetAltMembers(member.AltMembers));
+            xmlComments.AddRange(XmlDocComments.GetRelateds(member.Relateds));
 
-            //SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
-            SyntaxTriviaList exceptions = XmlDocComments.GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = XmlDocComments.GetRemarks(member, leadingWhitespace);
-            SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
-            SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(member.AltMembers, leadingWhitespace);
-            SyntaxTriviaList relateds = XmlDocComments.GetRelateds(member.Relateds, leadingWhitespace);
-
-            return GetNodeWithTrivia(leadingWhitespace, node, /*summary,*/ exceptions, remarks, seealsos, altmembers, relateds);
+            return LeadingTriviaRewriter.ApplyXmlComments(node, xmlComments.Where(c => c is not null)!);
         }
 
         private SyntaxNode? VisitVariableDeclaration(BaseFieldDeclarationSyntax node)
@@ -314,15 +309,14 @@ namespace Libraries.RoslynTripleSlash
                     return node;
                 }
 
-                SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+                List<XmlNodeSyntax?> xmlComments = new();
+                xmlComments.Add(XmlDocComments.GetSummary(member));
+                xmlComments.Add(XmlDocComments.GetRemarks(member));
+                xmlComments.AddRange(XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs));
+                xmlComments.AddRange(XmlDocComments.GetAltMembers(member.AltMembers));
+                xmlComments.AddRange(XmlDocComments.GetRelateds(member.Relateds));
 
-                //SyntaxTriviaList summary = XmlDocComments.GetSummary(member, leadingWhitespace);
-                SyntaxTriviaList remarks = XmlDocComments.GetRemarks(member, leadingWhitespace);
-                SyntaxTriviaList seealsos = XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
-                SyntaxTriviaList altmembers = XmlDocComments.GetAltMembers(member.AltMembers, leadingWhitespace);
-                SyntaxTriviaList relateds = XmlDocComments.GetRelateds(member.Relateds, leadingWhitespace);
-
-                return GetNodeWithTrivia(leadingWhitespace, node, /*summary,*/ remarks, seealsos, altmembers, relateds);
+                return LeadingTriviaRewriter.ApplyXmlComments(node, xmlComments.Where(c => c is not null)!);
             }
 
             return node;
@@ -354,93 +348,6 @@ namespace Libraries.RoslynTripleSlash
             }
 
             return type != null;
-        }
-
-        #endregion
-
-        #region Syntax manipulation
-
-        private static SyntaxNode GetNodeWithTrivia(SyntaxTriviaList leadingWhitespace, SyntaxNode node, params SyntaxTriviaList[] trivias)
-        {
-            SyntaxTriviaList leadingDoubleSlashComments = GetLeadingDoubleSlashComments(node, leadingWhitespace);
-
-            SyntaxTriviaList finalTrivia = new();
-            foreach (SyntaxTriviaList t in trivias)
-            {
-                finalTrivia = finalTrivia.AddRange(t);
-            }
-            finalTrivia = finalTrivia.AddRange(leadingDoubleSlashComments);
-
-            if (finalTrivia.Count > 0)
-            {
-                finalTrivia = finalTrivia.AddRange(leadingWhitespace);
-
-                var leadingTrivia = node.GetLeadingTrivia();
-                if (leadingTrivia.Any())
-                {
-                    if (leadingTrivia[0].IsKind(SyntaxKind.EndOfLineTrivia))
-                    {
-                        // Ensure the endline that separates nodes is respected
-                        finalTrivia = new SyntaxTriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed)
-                            .AddRange(finalTrivia);
-                    }
-                }
-
-                return node.WithLeadingTrivia(finalTrivia);
-            }
-
-            // If there was no new trivia, return untouched
-            return node;
-        }
-
-        // Finds the last set of whitespace characters that are to the left of the public|protected keyword of the node.
-        private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node)
-        {
-            SyntaxTriviaList triviaList = GetLeadingTrivia(node);
-
-            if (triviaList.Any() &&
-                triviaList.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
-            {
-                return new(last);
-            }
-
-            return new();
-        }
-
-        private static SyntaxTriviaList GetLeadingDoubleSlashComments(SyntaxNode node, SyntaxTriviaList leadingWhitespace)
-        {
-            SyntaxTriviaList triviaList = GetLeadingTrivia(node);
-
-            SyntaxTriviaList doubleSlashComments = new();
-
-            foreach (SyntaxTrivia trivia in triviaList)
-            {
-                if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                {
-                    doubleSlashComments = doubleSlashComments
-                                            .AddRange(leadingWhitespace)
-                                            .Add(trivia)
-                                            .Add(SyntaxFactory.CarriageReturnLineFeed);
-                }
-            }
-
-            return doubleSlashComments;
-        }
-
-        private static SyntaxTriviaList GetLeadingTrivia(SyntaxNode node)
-        {
-            if (node is MemberDeclarationSyntax memberDeclaration)
-            {
-                if ((memberDeclaration.Modifiers.FirstOrDefault(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.ProtectedKeyword)) is SyntaxToken modifier) &&
-                        !modifier.IsKind(SyntaxKind.None))
-                {
-                    return modifier.LeadingTrivia;
-                }
-
-                return node.GetLeadingTrivia();
-            }
-
-            return new();
         }
 
         #endregion

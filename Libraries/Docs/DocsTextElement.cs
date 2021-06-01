@@ -46,10 +46,10 @@ namespace Libraries.Docs
             }
         }
 
-        [MemberNotNull(nameof(_parsedNodes), nameof(_parsedText))]
+        [MemberNotNull(nameof(_parsedNodes), nameof(_parsedText), nameof(_parsedLines))]
         protected void EnsureParsed()
         {
-            if (_parsedNodes is null || _parsedText is null)
+            if (_parsedNodes is null || _parsedText is null || _parsedLines is null)
             {
                 // Clone the element for non-mutating parsing
                 var cloned = XElement.Parse(Element.ToString()).Nodes();

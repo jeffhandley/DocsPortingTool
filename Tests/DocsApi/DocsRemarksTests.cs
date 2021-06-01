@@ -135,6 +135,22 @@ Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
             Assert.Equal(expected, remarks.ParsedText);
         }
 
+        [Theory]
+        [InlineData(
+            @"<remarks><format type=""text/markdown""><![CDATA[
+                ## Remarks
+
+                Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
+                ]]></format></remarks>",
+            @"<format type=""text/markdown""><![CDATA[
+Has an inline include. [!INCLUDE[include-file](~/includes/include-file.md)]
+]]></format>")]
+        public void RetainsMarkdownStructureButRemovesHeader(string xml, string expected)
+        {
+            var remarks = new DocsRemarks(XElement.Parse(xml));
+            Assert.Equal(expected, remarks.ParsedText);
+        }
+
         [Fact]
         public void ReplacesMarkdownXrefWithTags()
         {

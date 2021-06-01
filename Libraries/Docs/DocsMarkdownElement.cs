@@ -42,11 +42,31 @@ namespace Libraries.Docs
         {
             if (node is XElement element && element.Name == "format" && element.Attribute("type")?.Value == "text/markdown")
             {
-                var markdown = (element.FirstNode is XCData cdata) ? cdata.Value : element.Value;
+                var cdata = element.FirstNode as XCData;
+                var markdown = cdata?.Value ?? element.Value;
 
+                markdown = ExtractElements(markdown);
+
+                // If we're able to fully parse the markdown, then
+                // we can just return the parsed text
                 if (TryParseMarkdown(markdown, out var parsedText))
                 {
                     return parsedText;
+                }
+                else
+                {
+                    // But if the markdown couldn't be fully parsed,
+                    // then update the <format> element with the markdown
+                    // that remains after extracting other elements,
+                    // retaining the CDATA wrapper if it was present
+                    if (cdata is not null)
+                    {
+                        cdata.Value = markdown;
+                    }
+                    else
+                    {
+                        element.Value = markdown;
+                    }
                 }
             }
 
@@ -56,9 +76,10 @@ namespace Libraries.Docs
         protected string RemoveMarkdownHeading(string markdown, string heading)
         {
             Regex HeadingPattern = new(@$"^\s*##\s*{heading}\s*$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
-
             return HeadingPattern.Replace(markdown, "", 1);
         }
+
+        protected virtual string ExtractElements(string markdown) => markdown;
 
         protected virtual bool TryParseMarkdown(string markdown, [NotNullWhen(true)] out string? parsed)
         {

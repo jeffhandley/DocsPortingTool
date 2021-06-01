@@ -59,19 +59,15 @@ namespace Libraries.Tests.PortToTripleSlash
             yield return new object[] { "DirectivesExistingXml", LoadTestFiles("DirectivesExistingXml") };
         }
 
-        private static IEnumerable<SyntaxTrivia> GetTestComments(string testName)
+        private static IEnumerable<XmlNodeSyntax> GetTestComments(string testName)
         {
             XmlTextSyntax summaryText = SyntaxFactory.XmlText(testName);
             XmlElementSyntax summaryElement = SyntaxFactory.XmlSummaryElement(summaryText);
-            DocumentationCommentTriviaSyntax summaryComment = SyntaxFactory.DocumentationComment(summaryElement);
-            SyntaxTrivia summaryTrivia = SyntaxFactory.Trivia(summaryComment);
 
             XmlTextSyntax remarksText = SyntaxFactory.XmlText(testName);
             XmlElementSyntax remarksElement = SyntaxFactory.XmlRemarksElement(remarksText);
-            DocumentationCommentTriviaSyntax remarksComment = SyntaxFactory.DocumentationComment(remarksElement);
-            SyntaxTrivia remarksTrivia = SyntaxFactory.Trivia(remarksComment);
 
-            return new SyntaxTrivia[] { summaryTrivia, remarksTrivia };
+            return new[] { summaryElement, remarksElement };
         }
 
         [Fact]

@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -107,12 +108,7 @@ namespace Libraries.RoslynTripleSlash
             return trivia;
         }
 
-        public static SyntaxNode ApplyXmlComments(SyntaxNode node, params SyntaxTriviaList[] xmlComments)
-        {
-            return ApplyXmlComments(node, xmlComments.SelectMany(comment => comment.ToArray()));
-        }
-
-        public static SyntaxNode ApplyXmlComments(SyntaxNode node, IEnumerable<SyntaxTrivia> xmlComments)
+        public static SyntaxNode ApplyXmlComments(SyntaxNode node, IEnumerable<XmlNodeSyntax> xmlComments)
         {
             if (!node.HasLeadingTrivia)
             {
@@ -160,7 +156,7 @@ namespace Libraries.RoslynTripleSlash
             );
         }
 
-        public static SyntaxTriviaList GetXmlCommentLines(IEnumerable<SyntaxTrivia> xmlComments, SyntaxTriviaList indentation = new())
+        public static SyntaxTriviaList GetXmlCommentLines(IEnumerable<XmlNodeSyntax> xmlComments, SyntaxTriviaList indentation = new())
         {
             SyntaxTriviaList xmlTrivia = new();
 

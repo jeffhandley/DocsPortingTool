@@ -74,17 +74,14 @@ namespace Libraries.RoslynTripleSlash
             return SingletonList<XmlNodeSyntax>(xmlText);
         }
 
-        public static SyntaxTriviaList GetSummary(DocsAPI api)
+        public static XmlNodeSyntax? GetSummary(DocsAPI api)
         {
             if (!api.SummaryElement.ParsedText.IsDocsEmpty())
             {
-                var summary = XmlElement("summary", SingletonList<XmlNodeSyntax>(XmlText(XmlTextLiteral(api.SummaryElement.ParsedText, api.SummaryElement.ParsedText))));
-                var summaryTrivia = Trivia(DocumentationComment(summary));
-
-                return new(summaryTrivia);
+                return XmlElement("summary", SingletonList<XmlNodeSyntax>(XmlText(XmlTextLiteral(api.SummaryElement.ParsedText, api.SummaryElement.ParsedText))));
             }
 
-            return new();
+            return null;
         }
 
         public static SyntaxTriviaList GetSummary(DocsAPI api, SyntaxTriviaList leadingWhitespace)
@@ -92,24 +89,21 @@ namespace Libraries.RoslynTripleSlash
             if (!api.Summary.IsDocsEmpty())
             {
                 XmlTextSyntax content = GetTextAsCommentedTokens(api.Summary, leadingWhitespace);
-                XmlElementSyntax element = SyntaxFactory.XmlSummaryElement(content);
+                XmlElementSyntax element = XmlSummaryElement(content);
                 return GetXmlTrivia(element, leadingWhitespace);
             }
 
             return new();
         }
 
-        public static SyntaxTriviaList GetRemarks(DocsAPI api)
+        public static XmlNodeSyntax? GetRemarks(DocsAPI api)
         {
             if (!api.RemarksElement.ParsedText.IsDocsEmpty())
             {
-                var remarks = XmlElement("remarks", SingletonList<XmlNodeSyntax>(XmlText(XmlTextLiteral(api.RemarksElement.ParsedText, api.RemarksElement.ParsedText))));
-                var remarksTrivia = Trivia(DocumentationComment(remarks));
-
-                return new(remarksTrivia);
+                return XmlElement("remarks", SingletonList<XmlNodeSyntax>(XmlText(XmlTextLiteral(api.RemarksElement.ParsedText, api.RemarksElement.ParsedText))));
             }
 
-            return new();
+            return null;
         }
 
         public static SyntaxTriviaList GetRemarks(DocsAPI api, SyntaxTriviaList leadingWhitespace)
@@ -122,28 +116,37 @@ namespace Libraries.RoslynTripleSlash
             return new();
         }
 
+        public static XmlNodeSyntax? GetValue(DocsMember api)
+        {
+            if (!api.Value.IsDocsEmpty())
+            {
+                return XmlValueElement(XmlText(api.Value));
+            }
+
+            return null;
+        }
+
         public static SyntaxTriviaList GetValue(DocsMember api, SyntaxTriviaList leadingWhitespace)
         {
             if (!api.Value.IsDocsEmpty())
             {
                 XmlTextSyntax contents = GetTextAsCommentedTokens(api.Value, leadingWhitespace);
-                XmlElementSyntax element = SyntaxFactory.XmlValueElement(contents);
+                XmlElementSyntax element = XmlValueElement(contents);
                 return GetXmlTrivia(element, leadingWhitespace);
             }
 
             return new();
         }
 
-        public static SyntaxTriviaList GetParameter(DocsParam parameter)
+        public static XmlNodeSyntax? GetParameter(DocsParam parameter)
         {
             if (!parameter.ParsedText.IsDocsEmpty())
             {
-                var content = SyntaxFactory.XmlText(parameter.ParsedText);
-                var element = SyntaxFactory.XmlParamElement(parameter.Name, content);
-                return GetXmlTrivia(element);
+                var content = XmlText(parameter.ParsedText);
+                return XmlParamElement(parameter.Name, content);
             }
 
-            return new();
+            return null;
         }
 
         public static SyntaxTriviaList GetParameter(string name, string text, SyntaxTriviaList leadingWhitespace)
@@ -151,19 +154,18 @@ namespace Libraries.RoslynTripleSlash
             if (!text.IsDocsEmpty())
             {
                 XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
-                XmlElementSyntax element = SyntaxFactory.XmlParamElement(name, contents);
+                XmlElementSyntax element = XmlParamElement(name, contents);
                 return GetXmlTrivia(element, leadingWhitespace);
             }
 
             return new();
         }
 
-        public static SyntaxTriviaList GetParameters(DocsAPI api)
+        public static IEnumerable<XmlNodeSyntax> GetParameters(DocsAPI api)
         {
-            return new(api.Params
+            return api.Params
                 .Where(param => !param.ParsedText.IsDocsEmpty())
-                .Select(GetParameter)
-                .SelectMany(list => list.ToArray()));
+                .Select(GetParameter)!;
         }
 
         public static SyntaxTriviaList GetParameters(DocsAPI api, SyntaxTriviaList leadingWhitespace)
@@ -178,24 +180,24 @@ namespace Libraries.RoslynTripleSlash
             return parameters;
         }
 
-        public static SyntaxTriviaList GetTypeParameter(DocsTypeParam param)
+        public static XmlNodeSyntax? GetTypeParameter(DocsTypeParam param)
         {
             if (!param.ParsedText.IsDocsEmpty())
             {
-                var attribute = new SyntaxList<XmlAttributeSyntax>(SyntaxFactory.XmlTextAttribute("name", param.Name));
-                var content = SyntaxFactory.XmlText(param.ParsedText);
+                var attribute = new SyntaxList<XmlAttributeSyntax>(XmlTextAttribute("name", param.Name));
+                var content = XmlText(param.ParsedText);
 
-                return GetXmlTrivia("typeparam", attribute, content);
+                return GetXmlNode("typeparam", attribute, content);
             }
 
-            return new();
+            return null;
         }
 
         public static SyntaxTriviaList GetTypeParam(string name, string text, SyntaxTriviaList leadingWhitespace)
         {
             if (!text.IsDocsEmpty())
             {
-                var attribute = new SyntaxList<XmlAttributeSyntax>(SyntaxFactory.XmlTextAttribute("name", name));
+                var attribute = new SyntaxList<XmlAttributeSyntax>(XmlTextAttribute("name", name));
                 XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
                 return GetXmlTrivia("typeparam", attribute, contents, leadingWhitespace);
             }
@@ -203,12 +205,11 @@ namespace Libraries.RoslynTripleSlash
             return new();
         }
 
-        public static SyntaxTriviaList GetTypeParameters(DocsAPI api)
+        public static IEnumerable<XmlNodeSyntax> GetTypeParameters(DocsAPI api)
         {
-            return new(api.TypeParams
+            return api.TypeParams
                 .Where(typeParam => !typeParam.ParsedText.IsDocsEmpty())
-                .Select(GetTypeParameter)
-                .SelectMany(list => list.ToArray()));
+                .Select(GetTypeParameter)!;
         }
 
         public static SyntaxTriviaList GetTypeParameters(DocsAPI api, SyntaxTriviaList leadingWhitespace)
@@ -223,17 +224,35 @@ namespace Libraries.RoslynTripleSlash
             return typeParameters;
         }
 
+        public static XmlNodeSyntax? GetReturns(DocsMember api)
+        {
+            if (!api.Returns.IsDocsEmpty())
+            {
+                return XmlReturnsElement(XmlText(api.Returns));
+            }
+
+            return null;
+        }
+
         public static SyntaxTriviaList GetReturns(DocsMember api, SyntaxTriviaList leadingWhitespace)
         {
             // Also applies for when <returns> is empty because the method return type is void
             if (!api.Returns.IsDocsEmpty())
             {
                 XmlTextSyntax contents = GetTextAsCommentedTokens(api.Returns, leadingWhitespace);
-                XmlElementSyntax element = SyntaxFactory.XmlReturnsElement(contents);
+                XmlElementSyntax element = XmlReturnsElement(contents);
                 return GetXmlTrivia(element, leadingWhitespace);
             }
 
             return new();
+        }
+
+        public static XmlNodeSyntax GetException(DocsException exception)
+        {
+            var withoutPrefix = RemoveCrefPrefix(exception.Cref);
+            var crefType = TypeCref(ParseTypeName(withoutPrefix));
+
+            return XmlExceptionElement(crefType, XmlText(XmlTextLiteral(exception.Value, exception.Value)));
         }
 
         public static SyntaxTriviaList GetException(string cref, string text, SyntaxTriviaList leadingWhitespace)
@@ -241,14 +260,17 @@ namespace Libraries.RoslynTripleSlash
             if (!text.IsDocsEmpty())
             {
                 cref = RemoveCrefPrefix(cref);
-                TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
+                TypeCrefSyntax crefSyntax = TypeCref(ParseTypeName(cref));
                 XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
-                XmlElementSyntax element = SyntaxFactory.XmlExceptionElement(crefSyntax, contents);
+                XmlElementSyntax element = XmlExceptionElement(crefSyntax, contents);
                 return GetXmlTrivia(element, leadingWhitespace);
             }
 
             return new();
         }
+
+        public static IEnumerable<XmlNodeSyntax> GetExceptions(List<DocsException> docsExceptions) =>
+            docsExceptions.Select(GetException);
 
         public static SyntaxTriviaList GetExceptions(List<DocsException> docsExceptions, SyntaxTriviaList leadingWhitespace)
         {
@@ -264,13 +286,24 @@ namespace Libraries.RoslynTripleSlash
             return exceptions;
         }
 
+        public static XmlNodeSyntax GetSeeAlso(string cref)
+        {
+            var withoutPrefix = RemoveCrefPrefix(cref);
+            var crefType = TypeCref(ParseTypeName(withoutPrefix));
+
+            return XmlSeeAlsoElement(crefType);
+        }
+
         public static SyntaxTriviaList GetSeeAlso(string cref, SyntaxTriviaList leadingWhitespace)
         {
             cref = RemoveCrefPrefix(cref);
-            TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
-            XmlEmptyElementSyntax element = SyntaxFactory.XmlSeeAlsoElement(crefSyntax);
+            TypeCrefSyntax crefSyntax = TypeCref(ParseTypeName(cref));
+            XmlEmptyElementSyntax element = XmlSeeAlsoElement(crefSyntax);
             return GetXmlTrivia(element, leadingWhitespace);
         }
+
+        public static IEnumerable<XmlNodeSyntax> GetSeeAlsos(List<string> docsSeeAlsoCrefs) =>
+            docsSeeAlsoCrefs.Select(GetSeeAlso);
 
         public static SyntaxTriviaList GetSeeAlsos(List<string> docsSeeAlsoCrefs, SyntaxTriviaList leadingWhitespace)
         {
@@ -286,14 +319,25 @@ namespace Libraries.RoslynTripleSlash
             return seealsos;
         }
 
+        public static XmlNodeSyntax GetAltMember(string cref)
+        {
+            var withoutPrefix = RemoveCrefPrefix(cref);
+            var crefType = MapDocIdGenericsToCrefGenerics(withoutPrefix);
+
+            return XmlEmptyElement(XmlName("altmember"), new(new[] { XmlTextAttribute("cref", crefType) }));
+        }
+
         public static SyntaxTriviaList GetAltMember(string cref, SyntaxTriviaList leadingWhitespace)
         {
             cref = RemoveCrefPrefix(cref);
             cref = MapDocIdGenericsToCrefGenerics(cref);
-            XmlAttributeSyntax attribute = SyntaxFactory.XmlTextAttribute("cref", cref);
-            XmlEmptyElementSyntax emptyElement = SyntaxFactory.XmlEmptyElement(SyntaxFactory.XmlName(SyntaxFactory.Identifier("altmember")), new SyntaxList<XmlAttributeSyntax>(attribute));
+            XmlAttributeSyntax attribute = XmlTextAttribute("cref", cref);
+            XmlEmptyElementSyntax emptyElement = XmlEmptyElement(XmlName(Identifier("altmember")), new SyntaxList<XmlAttributeSyntax>(attribute));
             return GetXmlTrivia(emptyElement, leadingWhitespace);
         }
+
+        public static IEnumerable<XmlNodeSyntax> GetAltMembers(List<string> docsAltMembers)
+            => docsAltMembers.Select(GetAltMember);
 
         public static SyntaxTriviaList GetAltMembers(List<string> docsAltMembers, SyntaxTriviaList leadingWhitespace)
         {
@@ -309,16 +353,33 @@ namespace Libraries.RoslynTripleSlash
             return altMembers;
         }
 
+        public static XmlNodeSyntax GetRelated(DocsRelated related)
+        {
+            var attributes = new[]
+            {
+                XmlTextAttribute("type", related.ArticleType),
+                XmlTextAttribute("href", related.Href)
+            };
+
+            var start = XmlElementStartTag(XmlName("related"), new(attributes));
+            var end = XmlElementEndTag(XmlName("related"));
+
+            return XmlElement(start, new(XmlText(XmlTextLiteral(related.Value))), end);
+        }
+
         public static SyntaxTriviaList GetRelated(string articleType, string href, string value, SyntaxTriviaList leadingWhitespace)
         {
             SyntaxList<XmlAttributeSyntax> attributes = new();
 
-            attributes = attributes.Add(SyntaxFactory.XmlTextAttribute("type", articleType));
-            attributes = attributes.Add(SyntaxFactory.XmlTextAttribute("href", href));
+            attributes = attributes.Add(XmlTextAttribute("type", articleType));
+            attributes = attributes.Add(XmlTextAttribute("href", href));
 
             XmlTextSyntax contents = GetTextAsCommentedTokens(value, leadingWhitespace);
             return GetXmlTrivia("related", attributes, contents, leadingWhitespace);
         }
+
+        public static IEnumerable<XmlNodeSyntax> GetRelateds(List<DocsRelated> docsRelateds) =>
+            docsRelateds.Select(GetRelated);
 
         public static SyntaxTriviaList GetRelateds(List<DocsRelated> docsRelateds, SyntaxTriviaList leadingWhitespace)
         {
@@ -340,9 +401,9 @@ namespace Libraries.RoslynTripleSlash
 
             // collapse newlines to a single one
             string whitespace = Regex.Replace(leadingWhitespace.ToFullString(), @"(\r?\n)+", "");
-            SyntaxToken whitespaceToken = SyntaxFactory.XmlTextNewLine(Environment.NewLine + whitespace);
+            SyntaxToken whitespaceToken = XmlTextNewLine(Environment.NewLine + whitespace);
 
-            SyntaxTrivia leadingTrivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.DocumentationCommentExteriorTrivia, string.Empty);
+            SyntaxTrivia leadingTrivia = SyntaxTrivia(SyntaxKind.DocumentationCommentExteriorTrivia, string.Empty);
             SyntaxTriviaList leading = SyntaxTriviaList.Create(leadingTrivia);
 
             string[] lines = text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -358,7 +419,7 @@ namespace Libraries.RoslynTripleSlash
             {
                 string line = lines[lineNumber];
 
-                SyntaxToken token = SyntaxFactory.XmlTextLiteral(leading, line, line, default);
+                SyntaxToken token = XmlTextLiteral(leading, line, line, default);
                 tokens.Add(token);
 
                 if (lines.Length > 1 && lineNumber < lines.Length - 1)
@@ -372,44 +433,34 @@ namespace Libraries.RoslynTripleSlash
                 tokens.Add(whitespaceToken);
             }
 
-            XmlTextSyntax xmlText = SyntaxFactory.XmlText(tokens.ToArray());
+            XmlTextSyntax xmlText = XmlText(tokens.ToArray());
             return xmlText;
-        }
-
-        private static SyntaxTriviaList GetXmlTrivia(XmlNodeSyntax node)
-        {
-            var comment = SyntaxFactory.DocumentationComment(node);
-            var trivia = SyntaxFactory.Trivia(comment);
-
-            return new(trivia);
         }
 
         private static SyntaxTriviaList GetXmlTrivia(XmlNodeSyntax node, SyntaxTriviaList leadingWhitespace)
         {
-            DocumentationCommentTriviaSyntax docComment = SyntaxFactory.DocumentationComment(node);
-            SyntaxTrivia docCommentTrivia = SyntaxFactory.Trivia(docComment);
+            DocumentationCommentTriviaSyntax docComment = DocumentationComment(node);
+            SyntaxTrivia docCommentTrivia = Trivia(docComment);
 
             return leadingWhitespace
                 .Add(docCommentTrivia)
-                .Add(SyntaxFactory.CarriageReturnLineFeed);
+                .Add(CarriageReturnLineFeed);
         }
 
-        private static SyntaxTriviaList GetXmlTrivia(string name, SyntaxList<XmlAttributeSyntax> attributes, XmlTextSyntax content)
+        private static XmlNodeSyntax GetXmlNode(string name, SyntaxList<XmlAttributeSyntax> attributes, XmlTextSyntax content)
         {
-            var start = SyntaxFactory.XmlElementStartTag(
-                SyntaxFactory.Token(SyntaxKind.LessThanToken),
-                SyntaxFactory.XmlName(SyntaxFactory.Identifier(name)),
+            var start = XmlElementStartTag(
+                Token(SyntaxKind.LessThanToken),
+                XmlName(Identifier(name)),
                 attributes,
-                SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+                Token(SyntaxKind.GreaterThanToken));
 
-            var end = SyntaxFactory.XmlElementEndTag(
-                SyntaxFactory.Token(SyntaxKind.LessThanSlashToken),
-                SyntaxFactory.XmlName(SyntaxFactory.Identifier(name)),
-                SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+            var end = XmlElementEndTag(
+                Token(SyntaxKind.LessThanSlashToken),
+                XmlName(Identifier(name)),
+                Token(SyntaxKind.GreaterThanToken));
 
-            var element = SyntaxFactory.XmlElement(start, new(content), end);
-
-            return GetXmlTrivia(element);
+            return XmlElement(start, new(content), end);
         }
 
         // Generates a custom SyntaxTrivia object containing a triple slashed xml element with optional attributes.
@@ -417,18 +468,18 @@ namespace Libraries.RoslynTripleSlash
         // [    /// <element attribute1="value1" attribute2="value2">text</element>]
         private static SyntaxTriviaList GetXmlTrivia(string name, SyntaxList<XmlAttributeSyntax> attributes, XmlTextSyntax contents, SyntaxTriviaList leadingWhitespace)
         {
-            XmlElementStartTagSyntax start = SyntaxFactory.XmlElementStartTag(
-                SyntaxFactory.Token(SyntaxKind.LessThanToken),
-                SyntaxFactory.XmlName(SyntaxFactory.Identifier(name)),
+            XmlElementStartTagSyntax start = XmlElementStartTag(
+                Token(SyntaxKind.LessThanToken),
+                XmlName(Identifier(name)),
                 attributes,
-                SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+                Token(SyntaxKind.GreaterThanToken));
 
-            XmlElementEndTagSyntax end = SyntaxFactory.XmlElementEndTag(
-                SyntaxFactory.Token(SyntaxKind.LessThanSlashToken),
-                SyntaxFactory.XmlName(SyntaxFactory.Identifier(name)),
-                SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+            XmlElementEndTagSyntax end = XmlElementEndTag(
+                Token(SyntaxKind.LessThanSlashToken),
+                XmlName(Identifier(name)),
+                Token(SyntaxKind.GreaterThanToken));
 
-            XmlElementSyntax element = SyntaxFactory.XmlElement(start, new SyntaxList<XmlNodeSyntax>(contents), end);
+            XmlElementSyntax element = XmlElement(start, new SyntaxList<XmlNodeSyntax>(contents), end);
             return GetXmlTrivia(element, leadingWhitespace);
         }
 
@@ -526,7 +577,7 @@ namespace Libraries.RoslynTripleSlash
                 contents = GetTextAsCommentedTokens(updatedRemarks, leadingWhitespace);
             }
 
-            XmlElementSyntax remarksXml = SyntaxFactory.XmlRemarksElement(contents);
+            XmlElementSyntax remarksXml = XmlRemarksElement(contents);
             SyntaxTriviaList result = GetXmlTrivia(remarksXml, leadingWhitespace);
 
             if (!string.IsNullOrWhiteSpace(example))
@@ -542,7 +593,7 @@ namespace Libraries.RoslynTripleSlash
         {
             example = ReplaceMarkdownWithXmlElements(example, api.Params, api.TypeParams);
             XmlNodeSyntax exampleContents = GetTextAsCommentedTokens(example, leadingWhitespace);
-            XmlElementSyntax exampleXml = SyntaxFactory.XmlExampleElement(exampleContents);
+            XmlElementSyntax exampleXml = XmlExampleElement(exampleContents);
             SyntaxTriviaList exampleTriviaList = GetXmlTrivia(exampleXml, leadingWhitespace);
             return exampleTriviaList;
         }
@@ -551,17 +602,17 @@ namespace Libraries.RoslynTripleSlash
         {
             XmlTextSyntax remarks = GetTextAsCommentedTokens(text, leadingWhitespace, wrapWithNewLines: true);
 
-            XmlNameSyntax formatName = SyntaxFactory.XmlName("format");
-            XmlAttributeSyntax formatAttribute = SyntaxFactory.XmlTextAttribute("type", "text/markdown");
+            XmlNameSyntax formatName = XmlName("format");
+            XmlAttributeSyntax formatAttribute = XmlTextAttribute("type", "text/markdown");
             var formatAttributes = new SyntaxList<XmlAttributeSyntax>(formatAttribute);
 
-            var formatStart = SyntaxFactory.XmlElementStartTag(formatName, formatAttributes);
-            var formatEnd = SyntaxFactory.XmlElementEndTag(formatName);
+            var formatStart = XmlElementStartTag(formatName, formatAttributes);
+            var formatEnd = XmlElementEndTag(formatName);
 
-            XmlCDataSectionSyntax cdata = SyntaxFactory.XmlCDataSection(remarks.TextTokens);
+            XmlCDataSectionSyntax cdata = XmlCDataSection(remarks.TextTokens);
             var cdataList = new SyntaxList<XmlNodeSyntax>(cdata);
 
-            XmlElementSyntax contents = SyntaxFactory.XmlElement(formatStart, cdataList, formatEnd);
+            XmlElementSyntax contents = XmlElement(formatStart, cdataList, formatEnd);
 
             return contents;
         }

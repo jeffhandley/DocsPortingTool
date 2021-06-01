@@ -27,17 +27,18 @@ namespace Libraries.Docs
 
         private static readonly Regex ExampleSectionPattern = new(@"^\s*##\s*Examples?\s*(?<examples>.*)", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-        protected override bool TryParseMarkdown(string markdown, [NotNullWhen(true)] out string? parsed)
+        protected override string ExtractElements(string markdown)
         {
+            markdown = base.ExtractElements(markdown);
             markdown = RemoveMarkdownHeading(markdown, "Remarks");
             markdown = ExtractExamples(markdown);
 
-            return base.TryParseMarkdown(markdown, out parsed);
+            return markdown;
         }
-        
-        private string ExtractExamples(string remarks)
+
+        private string ExtractExamples(string markdown)
         {
-            var match = ExampleSectionPattern.Match(remarks);
+            var match = ExampleSectionPattern.Match(markdown);
 
             if (match.Success)
             {
@@ -46,11 +47,14 @@ namespace Libraries.Docs
 {exampleContent}
 ]]></format></example>";
 
+                // Extract the examples (as a side effect)
                 ExampleContent = new DocsExample(XElement.Parse(exampleXml));
-                return remarks.Substring(0, match.Index);
+
+                // Return all of the markdown content before the examples begin
+                return markdown.Substring(0, match.Index);
             }
 
-            return remarks;
+            return markdown;
         }
     }
 }

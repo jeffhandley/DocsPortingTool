@@ -223,7 +223,7 @@ namespace Libraries.Docs
                     }
                     else
                     {
-                        throw new InvalidOperationException($"There was no <remarks> element. Doc ID: {DocId}");
+                        _remarks = new(new XElement("remarks"));
                     }
                 }
 

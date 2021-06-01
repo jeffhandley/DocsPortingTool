@@ -10,11 +10,12 @@ namespace Libraries.Docs
         {
         }
 
-        protected override bool TryParseMarkdown(string markdown, [NotNullWhen(true)] out string? parsed)
+        protected override string ExtractElements(string markdown)
         {
-            parsed = RemoveMarkdownHeading(markdown, "Examples?");
+            markdown = base.ExtractElements(markdown);
+            markdown = RemoveMarkdownHeading(markdown, "Examples?");
 
-            return base.TryParseMarkdown(parsed, out parsed);
+            return markdown;
         }
     }
 }
