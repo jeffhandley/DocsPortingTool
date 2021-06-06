@@ -181,10 +181,11 @@ namespace Libraries.RoslynTripleSlash
             }
 
             List<XmlNodeSyntax?> xmlComments = new();
-            xmlComments.Add(XmlDocComments.GetSummary(member));
-            xmlComments.Add(XmlDocComments.GetValue(member));
+            xmlComments.Add(XmlDocComments.GetSummary(member.SummaryElement));
+            xmlComments.Add(XmlDocComments.GetValue(member.Value));
             xmlComments.AddRange(XmlDocComments.GetExceptions(member.Exceptions));
-            xmlComments.Add(XmlDocComments.GetRemarks(member));
+            xmlComments.Add(XmlDocComments.GetRemarks(member.RemarksElement));
+            xmlComments.AddRange(XmlDocComments.GetExamples(member.ExampleElements));
             xmlComments.AddRange(XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs));
             xmlComments.AddRange(XmlDocComments.GetAltMembers(member.AltMembers));
             xmlComments.AddRange(XmlDocComments.GetRelateds(member.Relateds));
@@ -244,10 +245,11 @@ namespace Libraries.RoslynTripleSlash
             }
 
             List<XmlNodeSyntax?> xmlComments = new();
-            xmlComments.Add(XmlDocComments.GetSummary(type));
-            xmlComments.AddRange(XmlDocComments.GetTypeParameters(type));
-            xmlComments.AddRange(XmlDocComments.GetParameters(type));
-            xmlComments.Add(XmlDocComments.GetRemarks(type));
+            xmlComments.Add(XmlDocComments.GetSummary(type.SummaryElement));
+            xmlComments.AddRange(XmlDocComments.GetTypeParameters(type.TypeParams));
+            xmlComments.AddRange(XmlDocComments.GetParameters(type.Params));
+            xmlComments.Add(XmlDocComments.GetRemarks(type.RemarksElement));
+            xmlComments.AddRange(XmlDocComments.GetExamples(type.ExampleElements));
             xmlComments.AddRange(XmlDocComments.GetSeeAlsos(type.SeeAlsoCrefs));
             xmlComments.AddRange(XmlDocComments.GetAltMembers(type.AltMembers));
             xmlComments.AddRange(XmlDocComments.GetRelateds(type.Relateds));
@@ -265,12 +267,13 @@ namespace Libraries.RoslynTripleSlash
             }
 
             List<XmlNodeSyntax?> xmlComments = new();
-            xmlComments.Add(XmlDocComments.GetSummary(member));
-            xmlComments.AddRange(XmlDocComments.GetTypeParameters(member));
-            xmlComments.AddRange(XmlDocComments.GetParameters(member));
-            xmlComments.Add(XmlDocComments.GetReturns(member));
+            xmlComments.Add(XmlDocComments.GetSummary(member.SummaryElement));
+            xmlComments.AddRange(XmlDocComments.GetTypeParameters(member.TypeParams));
+            xmlComments.AddRange(XmlDocComments.GetParameters(member.Params));
+            xmlComments.Add(XmlDocComments.GetReturns(member.Returns));
             xmlComments.AddRange(XmlDocComments.GetExceptions(member.Exceptions));
-            xmlComments.Add(XmlDocComments.GetRemarks(member));
+            xmlComments.Add(XmlDocComments.GetRemarks(member.RemarksElement));
+            xmlComments.AddRange(XmlDocComments.GetExamples(member.ExampleElements));
             xmlComments.AddRange(XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs));
             xmlComments.AddRange(XmlDocComments.GetAltMembers(member.AltMembers));
             xmlComments.AddRange(XmlDocComments.GetRelateds(member.Relateds));
@@ -286,9 +289,10 @@ namespace Libraries.RoslynTripleSlash
             }
 
             List<XmlNodeSyntax?> xmlComments = new();
-            xmlComments.Add(XmlDocComments.GetSummary(member));
+            xmlComments.Add(XmlDocComments.GetSummary(member.SummaryElement));
             xmlComments.AddRange(XmlDocComments.GetExceptions(member.Exceptions));
-            xmlComments.Add(XmlDocComments.GetRemarks(member));
+            xmlComments.Add(XmlDocComments.GetRemarks(member.RemarksElement));
+            xmlComments.AddRange(XmlDocComments.GetExamples(member.ExampleElements));
             xmlComments.AddRange(XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs));
             xmlComments.AddRange(XmlDocComments.GetAltMembers(member.AltMembers));
             xmlComments.AddRange(XmlDocComments.GetRelateds(member.Relateds));
@@ -310,8 +314,9 @@ namespace Libraries.RoslynTripleSlash
                 }
 
                 List<XmlNodeSyntax?> xmlComments = new();
-                xmlComments.Add(XmlDocComments.GetSummary(member));
-                xmlComments.Add(XmlDocComments.GetRemarks(member));
+                xmlComments.Add(XmlDocComments.GetSummary(member.SummaryElement));
+                xmlComments.Add(XmlDocComments.GetRemarks(member.RemarksElement));
+                xmlComments.AddRange(XmlDocComments.GetExamples(member.ExampleElements));
                 xmlComments.AddRange(XmlDocComments.GetSeeAlsos(member.SeeAlsoCrefs));
                 xmlComments.AddRange(XmlDocComments.GetAltMembers(member.AltMembers));
                 xmlComments.AddRange(XmlDocComments.GetRelateds(member.Relateds));

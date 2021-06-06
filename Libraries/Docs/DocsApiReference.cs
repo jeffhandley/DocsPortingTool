@@ -18,7 +18,7 @@ namespace Libraries.Docs
         private const string GenericParameterPattern = @"`{1,2}(?<arity>\d+)";
         private const string ApiChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;`]";
         private const string ApiReferencePattern = @"((?<prefix>[A-Za-z]):)?(?<api>(" + ApiChars + @")+)?(?<extraVars>\?(" + ApiChars + @")+=(" + ApiChars + @")+)?";
-        private static readonly Regex XrefPattern = new("<xref:(?<api>" + ApiReferencePattern + ")\\s*>");
+        private static readonly Regex XrefPattern = new("<xref:(?<api>" + ApiReferencePattern + ")\\s*>", RegexOptions.Compiled);
 
         public DocsApiReference(string apiReference)
         {

@@ -11,6 +11,7 @@ namespace Libraries.Docs
         private string? _docIdEscaped = null;
         private DocsSummary? _summary;
         private DocsRemarks? _remarks;
+        private List<DocsExample>? _examples;
         private List<DocsParam>? _params;
         private List<DocsParameter>? _parameters;
         private List<DocsTypeParameter>? _typeParameters;
@@ -220,6 +221,11 @@ namespace Libraries.Docs
                     if (xe != null)
                     {
                         _remarks = new(xe);
+
+                        if (!_remarks.ExampleContent?.ParsedText?.IsDocsEmpty() ?? false)
+                        {
+                            ExampleElements.Add(_remarks.ExampleContent!);
+                        }
                     }
                     else
                     {
@@ -231,6 +237,19 @@ namespace Libraries.Docs
             }
         }
 
+        public List<DocsExample> ExampleElements
+        {
+            get
+            {
+                if (_examples == null)
+                {
+                    IEnumerable<XElement> elems = Docs.Elements("example");
+                    _examples = elems.Select(e => new DocsExample(e)).ToList();
+                }
+
+                return _examples;
+            }
+        }
 
         public List<DocsAssemblyInfo> AssemblyInfos
         {

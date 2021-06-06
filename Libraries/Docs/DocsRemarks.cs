@@ -25,7 +25,7 @@ namespace Libraries.Docs
             }
         }
 
-        private static readonly Regex ExampleSectionPattern = new(@"^\s*##\s*Examples?\s*(?<examples>.*)", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+        private static readonly Regex ExampleSectionPattern = new(@"^\s*##\s*Examples?\s*(?<examples>.*)", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
 
         protected override string ExtractElements(string markdown)
         {

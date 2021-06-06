@@ -74,11 +74,13 @@ namespace Libraries.RoslynTripleSlash
             return SingletonList<XmlNodeSyntax>(xmlText);
         }
 
-        public static XmlNodeSyntax? GetSummary(DocsAPI api)
+        public static XmlNodeSyntax? GetSummary(DocsSummary summary)
         {
-            if (!api.SummaryElement.ParsedText.IsDocsEmpty())
+            var text = summary.ParsedText;
+
+            if (!text.IsDocsEmpty())
             {
-                return XmlElement("summary", SingletonList<XmlNodeSyntax>(XmlText(XmlTextLiteral(api.SummaryElement.ParsedText, api.SummaryElement.ParsedText))));
+                return XmlElement("summary", SingletonList<XmlNodeSyntax>(XmlText(XmlTextLiteral(text, text))));
             }
 
             return null;
@@ -96,11 +98,13 @@ namespace Libraries.RoslynTripleSlash
             return new();
         }
 
-        public static XmlNodeSyntax? GetRemarks(DocsAPI api)
+        public static XmlNodeSyntax? GetRemarks(DocsRemarks remarks)
         {
-            if (!api.RemarksElement.ParsedText.IsDocsEmpty())
+            var text = remarks.ParsedText;
+
+            if (!text.IsDocsEmpty())
             {
-                return XmlElement("remarks", SingletonList<XmlNodeSyntax>(XmlText(XmlTextLiteral(api.RemarksElement.ParsedText, api.RemarksElement.ParsedText))));
+                return XmlElement("remarks", SingletonList<XmlNodeSyntax>(XmlText(XmlTextLiteral(text, text))));
             }
 
             return null;
@@ -116,11 +120,29 @@ namespace Libraries.RoslynTripleSlash
             return new();
         }
 
-        public static XmlNodeSyntax? GetValue(DocsMember api)
+        public static XmlNodeSyntax? GetExample(DocsExample example)
         {
-            if (!api.Value.IsDocsEmpty())
+            if (!example.ParsedText.IsDocsEmpty())
             {
-                return XmlValueElement(XmlText(api.Value));
+                var content = XmlText(example.ParsedText);
+                return XmlExampleElement(content);
+            }
+
+            return null;
+        }
+
+        public static IEnumerable<XmlNodeSyntax> GetExamples(IEnumerable<DocsExample> examples)
+        {
+            return examples
+                .Where(e => !e.ParsedText?.IsDocsEmpty() ?? false)
+                .Select(GetExample)!;
+        }
+
+        public static XmlNodeSyntax? GetValue(string value)
+        {
+            if (!value.IsDocsEmpty())
+            {
+                return XmlValueElement(XmlText(value));
             }
 
             return null;
@@ -161,9 +183,9 @@ namespace Libraries.RoslynTripleSlash
             return new();
         }
 
-        public static IEnumerable<XmlNodeSyntax> GetParameters(DocsAPI api)
+        public static IEnumerable<XmlNodeSyntax> GetParameters(IEnumerable<DocsParam> parameters)
         {
-            return api.Params
+            return parameters
                 .Where(param => !param.ParsedText.IsDocsEmpty())
                 .Select(GetParameter)!;
         }
@@ -205,9 +227,9 @@ namespace Libraries.RoslynTripleSlash
             return new();
         }
 
-        public static IEnumerable<XmlNodeSyntax> GetTypeParameters(DocsAPI api)
+        public static IEnumerable<XmlNodeSyntax> GetTypeParameters(IEnumerable<DocsTypeParam> typeParams)
         {
-            return api.TypeParams
+            return typeParams
                 .Where(typeParam => !typeParam.ParsedText.IsDocsEmpty())
                 .Select(GetTypeParameter)!;
         }
@@ -224,11 +246,11 @@ namespace Libraries.RoslynTripleSlash
             return typeParameters;
         }
 
-        public static XmlNodeSyntax? GetReturns(DocsMember api)
+        public static XmlNodeSyntax? GetReturns(string returns)
         {
-            if (!api.Returns.IsDocsEmpty())
+            if (!returns.IsDocsEmpty())
             {
-                return XmlReturnsElement(XmlText(api.Returns));
+                return XmlReturnsElement(XmlText(returns));
             }
 
             return null;
